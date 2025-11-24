@@ -1,0 +1,9 @@
+Objectiu: Construir un sistema de recomanació per productes utilitzant el dataset ratings_Electronics.csv amb l’objectiu de treballar diferents tècniques de filtratge col·laboratiu, comparar models basats en veïns i en factorització i preparar un pipeline complet: neteja, entrenament i inferència.
+
+Models de recomanació que podem fer (mètodes d'entrenament):
+1 - Col·laboratiu (ítem-ítem KNN): El model és útil perquè el dataset és gran i dispers, i els usuaris són molts però els productes repetits. Utilitza distancia cosine, matriu Producte-Rating i fa una recomanació basada en productes similars.
+2 - SVD (Matrix Factorization): Funciona molt bé en dades molt disperses, és escalable i eficient.
+
+També podem fer els models de recomanacio PERÒ:
+  User-User: És un bon model quan el dataset és més petit i els usuaris tenen molts ítems en comú (en aquest dataset, cada usuari valora molt pocs productes).
+  SVM (Support Vector Machines): No és un model de recomanació, sinó un classificador binari. Per aplicar SVM a recomanació hauriem de convertir recomanació en classificació (per exemple like/dislike), transformar la matriu sparse en vectors molt grans i entrenar un model per cada usuari.
