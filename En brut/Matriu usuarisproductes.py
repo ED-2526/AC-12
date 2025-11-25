@@ -30,8 +30,12 @@ R_sparse = csr_matrix((df['rating'], (df['user_index'], df['product_index'])))
 #Guardar CSV amb només ratings existents (ja amb mitjana aplicada)
 df[['user_id', 'product_id', 'rating']].to_csv('ratings_cleaned.csv', index=False)
 
-#Pudriem guardar la matriu en fitxer binari .npz
-#save_npz('R_sparse_avg.npz', R_sparse)
+#Podriem guardar la matriu en fitxer binari .npz
+save_npz('R_sparse_avg.npz', R_sparse)
+
+#O No guardar, usar directament
+# R_sparse = csr_matrix((df['rating'], (df['user_index'], df['product_index'])))
+#I treure el load_npz()
 
 print("Nombre d'usuaris:", len(user_idx))
 print("Nombre de productes:", len(product_idx))
