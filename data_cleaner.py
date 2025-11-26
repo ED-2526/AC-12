@@ -16,7 +16,7 @@ def load_and_clean(path, min_ratings_per_user=20, min_ratings_per_item=100, frac
         header=None,
         names=["userID", "itemID", "rating", "timestamp"]
     )
-
+    df.shape()
     df = df.dropna(subset=['userID', 'itemID', 'rating'])
 
     df['userID'] = df['userID'].astype(str)
@@ -43,3 +43,4 @@ def load_and_clean(path, min_ratings_per_user=20, min_ratings_per_item=100, frac
         df = df.sample(frac=fraction, random_state=seed)
 
     return df
+
