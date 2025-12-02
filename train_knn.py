@@ -39,6 +39,7 @@ class ItemItemKNN:
         n_items = len(items)
 
         # create item x user matrix
+        # REVISAR: es pot fer amb pandas
         mat = np.zeros((n_items, n_users), dtype=np.float32)
         for u_code, i_code, r in zip(user_codes, item_codes, df["rating"]):
             mat[i_code, u_code] = r
@@ -56,6 +57,7 @@ class ItemItemKNN:
         self.build_matrix(df)
         
         # Limitació de seguretat: si hi ha massa usuaris/items: atura
+        # REVISAR: es necessari si ja limitem (fraction) el dataset a data_cleaner?
         if len(self.items) > 30000 or len(self.users) > 30000:
             raise ValueError(
                 f"Massa usuaris/items per entrenar KNN. "
@@ -114,4 +116,5 @@ if __name__ == "__main__":
     print("Training item-item KNN (top-k)...")
     model = train_itemknn(df, k=20, model_path="../models/knn_item_model.pkl", use_topk=True)
     print("Saved model to ../models/knn_item_model.pkl")
+
 
