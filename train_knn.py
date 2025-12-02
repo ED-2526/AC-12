@@ -94,93 +94,6 @@ class ItemItemKNN:
             # keep full sim matrix (less memory efficient)
             self.topk_neighbors = sim
 
-    def predict(self, user_id, item_id):
-        """
-        Predict rating for a given (user_id, item_id).
-        Returns a float prediction (0..5 or 0 if no info).
-        """
-        if item_id not in self.item_index:
-            return 0.0
-        if user_id not in self.user_index:
-            return 0.0
-
-        i_idx = self.item_index[item_id]
-        u_idx = self.user_index[user_id]
-
-        # user's ratings vector (for all items)
-        user_ratings = self.item_user_matrix[:, u_idx]  # shape (n_items,)
-
-        if self.use_topk:
-            neighbors = self.topk_neighbors[i_idx]
-            if neighbors is None:
-                return 0.0
-            nbr_idx, nbr_sims = neighbors
-            if len(nbr_idx) == 0:
-                return 0.0
-            nbr_ratings = user_ratings[nbr_idx]
-            # consider only neighbors that the user has rated
-            mask = nbr_ratings > 0
-            if mask.sum() == 0:
-                return 0.0
-            sims = nbr_sims[mask]
-            ratings = nbr_ratings[mask]
-            if sims.sum() == 0:
-                return 0.0
-            return float(np.dot(sims, ratings) / sims.sum())
-        else:
-            sims = self.topk_neighbors[i_idx]  # full sim row
-            # weighted avg over all items user rated
-            rated_mask = user_ratings > 0
-            if rated_mask.sum() == 0:
-                return 0.0
-            sims_rated = sims[rated_mask]
-            ratings_rated = user_ratings[rated_mask]
-            if sims_rated.sum() == 0:
-                return 0.0
-            return float(np.dot(sims_rated, ratings_rated) / sims_rated.sum())
-
-    def recommend(self, user_id, top_n=10, exclude_rated=True):
-        """
-        Return top_n (item_id, score) recommendations for a user_id.
-        """
-        if user_id not in self.user_index:
-            return []
-
-        u_idx = self.user_index[user_id]
-        user_ratings = self.item_user_matrix[:, u_idx]
-        unseen_items = np.where(user_ratings == 0)[0]
-
-        preds = []
-        for i in unseen_items:
-            # predict using item index i and the user index u_idx
-            # translate indices back to item_id after
-            # Note: for performance you could vectorize, here simple loop
-            if self.use_topk:
-                nbr_idx, nbr_sims = self.topk_neighbors[i]
-                if nbr_idx is None or len(nbr_idx)==0:
-                    continue
-                nbr_ratings = user_ratings[nbr_idx]
-                mask = nbr_ratings > 0
-                if mask.sum() == 0:
-                    continue
-                sims = nbr_sims[mask]
-                ratings = nbr_ratings[mask]
-                score = float(np.dot(sims, ratings) / (sims.sum() if sims.sum()!=0 else 1e-8))
-            else:
-                sims_row = self.topk_neighbors[i]
-                rated_mask = user_ratings > 0
-                if rated_mask.sum() == 0:
-                    continue
-                sims = sims_row[rated_mask]
-                ratings = user_ratings[rated_mask]
-                score = float(np.dot(sims, ratings) / (sims.sum() if sims.sum()!=0 else 1e-8))
-            preds.append((i, score))
-
-        preds.sort(key=lambda x: x[1], reverse=True)
-        top = preds[:top_n]
-        # map indices back to item ids
-        return [(self.items[i], score) for i, score in top]
-
 
 def train_itemknn(df, k=20, model_path="models/knn_item_model.pkl", use_topk=True):
     model = ItemItemKNN(k=k, use_topk=use_topk)
@@ -201,3 +114,4 @@ if __name__ == "__main__":
     print("Training item-item KNN (top-k)...")
     model = train_itemknn(df, k=20, model_path="../models/knn_item_model.pkl", use_topk=True)
     print("Saved model to ../models/knn_item_model.pkl")
+
