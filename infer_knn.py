@@ -17,6 +17,7 @@ def load_model(model_path="models/knn_item_model.pkl"):
         model = pickle.load(f)
     return model
 
+#REVISAR
 def predict(user_id, item_id, model):
     """
     Predicció d'un rating (0 si no hi ha informació).
@@ -113,3 +114,4 @@ if __name__ == "__main__":
     print("\nTop 10 recomanacions:")
     for item, score in recs:
         print(f"{item}: {score:.3f}")
+
