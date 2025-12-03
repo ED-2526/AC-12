@@ -1,9 +1,9 @@
-
 import os
 from data_cleaner import load_and_clean, visualize_dataset
-from infer_knn import load_model, recommend, predict
+from train_knn import train_itemknn
 from train_svd import train_svd_model
-from infer_svd import load_model, predict, recommend
+from infer_svd import load_model, predict_svd, recommend_svd
+from infer_knn import load_model, recommend_knn, predict_knn
 
 
 
@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     # ----- 1. Paths -----
     ROOT = os.path.dirname(__file__)
-    DATA_PATH = os.path.join(ROOT, "ratings_Electronics(1).csv")
+    DATA_PATH = os.path.join(ROOT, "ratings_Electronics (1).csv")
     MODELS_DIR = os.path.join(ROOT, "models")
     os.makedirs(MODELS_DIR, exist_ok=True)
     KNN_MODEL_PATH = os.path.join(MODELS_DIR, "knn_item_model.pkl")
@@ -45,11 +45,11 @@ if __name__ == "__main__":
 
     # ----- 8. Predicció SVD per un ítem -----
     example_item = items[0]
-    rating_pred = predict(sample_user, example_item, svd_model, users, items)
+    rating_pred = predict_svd(sample_user, example_item, svd_model, users, items)
     print(f"\nPredicció rating per l'item {example_item}: {rating_pred:.3f}")
 
     # ----- 9. Recomanacions SVD -----
-    recs = recommend(sample_user, svd_model, users, items, top_n=10)
+    recs = recommend_svd(sample_user, svd_model, users, items, top_n=10)
     print("\nTop 10 recomanacions:")
     for item, score in recs:
         print(f"{item}: {score:.3f}")
@@ -62,11 +62,11 @@ if __name__ == "__main__":
 
     # Predicció per un ítem concret amb KNN
     example_item_knn = list(knn_model_loaded.item_index.keys())[0]
-    rating_pred_knn = predict(sample_user_knn, example_item_knn, knn_model_loaded)
+    rating_pred_knn = predict_knn(sample_user_knn, example_item_knn, knn_model_loaded)
     print(f"[KNN] Predicció rating per l'item {example_item_knn}: {rating_pred_knn:.3f}")
 
     # Recomanacions top 10 KNN
-    recs_knn = recommend(sample_user_knn, knn_model_loaded, top_n=10)
+    recs_knn = recommend_knn(sample_user_knn, knn_model_loaded, top_n=10)
     print("\n[KNN] Top 10 recomanacions:")
     for item, score in recs_knn:
         print(f"{item}: {score:.3f}")
