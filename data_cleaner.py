@@ -1,6 +1,6 @@
 import pandas as pd
 
-def load_and_clean(path, min_ratings_per_user=20, min_ratings_per_item=100, fraction=None, seed=42):
+def load_and_clean(path, min_ratings_per_user=10, min_ratings_per_item=50, fraction=0.1, seed=42):
     """
     Carrega i neteja el dataset.
 
@@ -43,5 +43,6 @@ def load_and_clean(path, min_ratings_per_user=20, min_ratings_per_item=100, frac
         df = df.sample(frac=fraction, random_state=seed)
 
     return df
+
 
 
