@@ -18,7 +18,7 @@ def load_model(model_path="models/svd_model.pkl"):
         model, users, items = pickle.load(f)
     return model, users, items
 
-def predict(user_id, item_id, model, users, items):
+def predict_svd(user_id, item_id, model, users, items):
     """
     Retorna la predicció de rating de l'usuari per un item.
     """
@@ -30,7 +30,7 @@ def predict(user_id, item_id, model, users, items):
 
     return float(np.dot(model.P[u_idx], model.Q[i_idx]))
 
-def recommend(user_id, model, users, items, top_n=10, exclude_rated=True, rated_items_idx=None):
+def recommend_svd(user_id, model, users, items, top_n=10, exclude_rated=True, rated_items_idx=None):
     """
     Retorna les top_n recomanacions per a un usuari.
     Si exclude_rated=True, es poden passar els índexs dels items ja valorats
@@ -64,11 +64,12 @@ if __name__ == "__main__":
 
     # Predicció per un item concret
     example_item = items[0]
-    rating_pred = predict(sample_user, example_item, model, users, items)
+    rating_pred = predict_svd(sample_user, example_item, model, users, items)
     print(f"\nPredicció rating per l'item {example_item}: {rating_pred:.3f}")
 
     # Recomanacions top 10
-    recs = recommend(sample_user, model, users, items, top_n=10)
+    recs = recommend_svd(sample_user, model, users, items, top_n=10)
     print("\nTop 10 recomanacions:")
     for item, score in recs:
         print(f"{item}: {score:.3f}")
+
