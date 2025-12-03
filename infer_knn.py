@@ -18,7 +18,7 @@ def load_model(model_path="models/knn_item_model.pkl"):
     return model
 
 #REVISAR
-def predict(user_id, item_id, model):
+def predict_knn(user_id, item_id, model):
     """
     Predicció d'un rating (0 si no hi ha informació).
     Logica copiada del mètode original predict() de la classe.
@@ -58,7 +58,7 @@ def predict(user_id, item_id, model):
             return 0.0
         return float(np.dot(sims_rated, ratings_rated) / sims_rated.sum())
 
-def recommend(user_id, model, top_n=10):
+def recommend_knn(user_id, model, top_n=10):
     """
     Recomanacions top_n per un usuari, lògica copiada del mètode recommend().
     """
@@ -106,12 +106,13 @@ if __name__ == "__main__":
 
     # Predicció per un item concret
     example_item = list(model.item_index.keys())[0]
-    rating_pred = predict(sample_user, example_item, model)
+    rating_pred = predict_knn(sample_user, example_item, model)
     print(f"\nPredicció rating per l'item {example_item}: {rating_pred:.3f}")
 
     # Recomanacions top 10
-    recs = recommend(sample_user, model, top_n=10)
+    recs = recommend_knn(sample_user, model, top_n=10)
     print("\nTop 10 recomanacions:")
     for item, score in recs:
         print(f"{item}: {score:.3f}")
+
 
