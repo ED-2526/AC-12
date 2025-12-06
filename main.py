@@ -2,16 +2,15 @@ import os
 from data_cleaner import load_and_clean, visualize_dataset
 from train_knn import train_itemknn
 from train_svd import train_svd_model
-from infer_svd import load_model, predict_svd, recommend_svd
-from infer_knn import load_model, recommend_knn, predict_knn
+from inferencia import Inferencia, SVDPredictions, KNNPredictions
 
 
 
 if __name__ == "__main__":
-
+    
     # ----- 1. Paths -----
     ROOT = os.path.dirname(__file__)
-    DATA_PATH = os.path.join(ROOT, "ratings_Electronics (1).csv")
+    DATA_PATH = os.path.join(ROOT, "ratings_Electronics(1).csv")
     MODELS_DIR = os.path.join(ROOT, "models")
     os.makedirs(MODELS_DIR, exist_ok=True)
     KNN_MODEL_PATH = os.path.join(MODELS_DIR, "knn_item_model.pkl")
@@ -35,40 +34,36 @@ if __name__ == "__main__":
     svd_model = train_svd_model(df, k=20, epochs=20, model_path=SVD_MODEL_PATH)
     print(f"SVD model saved at: {SVD_MODEL_PATH}")
 
-    # ----- 6. Load KNN model for inference -----
-    knn_model_loaded = load_model(KNN_MODEL_PATH) #revisar
+    # ----- 6. Load models through inference classes -----
+    knn_inf = KNNPredictions()
+    svd_inf = SVDPredictions()
+    knn_model_loaded = knn_inf.load_model(KNN_MODEL_PATH)
+    svd_model_loaded = svd_inf.load_model(SVD_MODEL_PATH)
 
-    # ----- 7. Load FunkSVD model for inference -----
-    svd_model, users, items = load_model(SVD_MODEL_PATH)
-    sample_user = users[0]
+    # ----- 7. Example user -----
+    sample_user = svd_inf.users[0]
     print("\nUser seleccionat:", sample_user)
 
-    # ----- 8. Predicció SVD per un ítem -----
-    example_item = items[0]
-    rating_pred = predict_svd(sample_user, example_item, svd_model, users, items)
+    # ----- 8. Predicció SVD -----
+    example_item = svd_inf.items[0]
+    rating_pred = svd_inf.predict(sample_user, example_item)
     print(f"\nPredicció rating per l'item {example_item}: {rating_pred:.3f}")
 
     # ----- 9. Recomanacions SVD -----
-    recs = recommend_svd(sample_user, svd_model, users, items, top_n=10)
-    print("\nTop 10 recomanacions:")
+    recs = svd_inf.recommend(sample_user, top_n=10)
+    print("\nTop 10 recomanacions (SVD):")
     for item, score in recs:
         print(f"{item}: {score:.3f}")
 
-    #REVISAR
-
-    # Exemple amb un usuari real per KNN
-    sample_user_knn = list(knn_model_loaded.user_index.keys())[0]
+    # ----- 10. KNN Tests -----
+    sample_user_knn = list(knn_inf.model.user_index.keys())[0]
     print("\n[KNN] User seleccionat:", sample_user_knn)
 
-    # Predicció per un ítem concret amb KNN
-    example_item_knn = list(knn_model_loaded.item_index.keys())[0]
-    rating_pred_knn = predict_knn(sample_user_knn, example_item_knn, knn_model_loaded)
+    example_item_knn = list(knn_inf.model.item_index.keys())[0]
+    rating_pred_knn = knn_inf.predict(sample_user_knn, example_item_knn)
     print(f"[KNN] Predicció rating per l'item {example_item_knn}: {rating_pred_knn:.3f}")
 
-    # Recomanacions top 10 KNN
-    recs_knn = recommend_knn(sample_user_knn, knn_model_loaded, top_n=10)
+    recs_knn = knn_inf.recommend(sample_user_knn, top_n=10)
     print("\n[KNN] Top 10 recomanacions:")
     for item, score in recs_knn:
         print(f"{item}: {score:.3f}")
-
-  
