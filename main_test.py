@@ -141,8 +141,12 @@ for u, true_item in zip(test_users, test_items):
 #                 RESULTATS FINALS
 # ----------------------------------------------------------
 
-rmse_knn = np.sqrt(rmse_knn_sum / rmse_count)
-rmse_svd = np.sqrt(rmse_svd_sum / rmse_count)
+if rmse_count != 0:
+    rmse_knn = np.sqrt(rmse_knn_sum / rmse_count)
+    rmse_svd = np.sqrt(rmse_svd_sum / rmse_count)
+else:
+    rmse_knn = 0
+    rmse_svd = 0
 
 print("\n================ RESULTATS ================")
 print("\n--- KNN ---")
@@ -181,3 +185,4 @@ plot_bar(np.mean(ndcg_knn), np.mean(ndcg_svd), "NDCG@K Comparison", "NDCG@K")
 plot_bar(rmse_knn, rmse_svd, "RMSE Comparison", "RMSE")
 
 print("\nGràfics generats correctament.")
+
