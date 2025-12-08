@@ -70,7 +70,7 @@ if __name__ == "__main__":
     # ----- 7. Load models (infer_knn / infer_svd) -----
     print("\nCarregant models d'inferència...")
     knn_model = infer_knn.load_model(KNN_MODEL_PATH)
-    svd_model, svd_users, svd_items, __, __ = infer_svd.load_model(SVD_MODEL_PATH)
+    svd_model, svd_users, svd_items = infer_svd.load_model(SVD_MODEL_PATH)
 
     # ----- 8. Exemple d'usuari -----
     sample_user = svd_users[0]
@@ -78,12 +78,12 @@ if __name__ == "__main__":
     example_item = svd_items[0]
 
     # ----- 9. Predicció SVD -----
-    pred_svd = infer_svd.predict_svd(sample_user, example_item, svd_model, svd_users, svd_items, __, __)
+    pred_svd = infer_svd.predict_svd(sample_user, example_item, svd_model, svd_users, svd_items)
     print(f"\n[SVD] Predicció {sample_user} sobre {example_item}: {pred_svd}")
 
     # ----- 10. Recomanacions SVD -----
     print("\nTop 10 recomanacions (SVD):")
-    recs_svd = infer_svd.recommend_svd(sample_user, svd_model, svd_users, svd_items, __, __, top_n=10)
+    recs_svd = infer_svd.recommend_svd(sample_user, svd_model, svd_users, svd_items, top_n=10)
     for item, score in recs_svd:
         print(f"{item}: {score}")
 
@@ -98,4 +98,5 @@ if __name__ == "__main__":
     print("\n[KNN] Top 10 recomanacions:")
     recs_knn = infer_knn.recommend_knn(sample_user_knn, knn_model, top_n=10)
     for item, score in recs_knn:
+
         print(f"{item}: {score}")
