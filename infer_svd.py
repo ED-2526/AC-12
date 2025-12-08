@@ -1,72 +1,107 @@
 # -*- coding: utf-8 -*-
 """
-SVD Prediction & Recommendation returning INT ratings
+Unified SVD / SVD-Bias Prediction & Recommendation
 """
 
 import pickle
 import numpy as np
-from train_svd import MatrixFactorization  
-
-
-def load_model(model_path="models/svd_model.pkl"):
-    """
-    Carrega el model SVD des del fitxer pickle.
-    Retorna: model, users, items
-    """
-    with open(model_path, "rb") as f:
-        model, users, items = pickle.load(f)
-    return model, users, items
+from train_svd import MatrixFactorization
+from train_svd_bias import MatrixFactorizationBias
 
 
 # ------------------------------------------------------------
-# Helpers per convertir prediccions float → int 1..5
+# LOAD MODEL
+# ------------------------------------------------------------
+def load_model(model_path="models/svd_model.pkl"):
+    """
+    Carrega model + vocabularis.
+    Construeix diccionaris inversos per accés O(1).
+    """
+    with open(model_path, "rb") as f:
+        model, users, items = pickle.load(f)
+
+    # Diccionari userID → index
+    user_to_idx = {u: i for i, u in enumerate(users)}
+    item_to_idx = {it: j for j, it in enumerate(items)}
+
+    return model, users, items, user_to_idx, item_to_idx
+
+
+# ------------------------------------------------------------
+# HELPERS — clamp i conversió a integer
 # ------------------------------------------------------------
 def clamp_rating(x, min_r=1, max_r=5):
     return max(min_r, min(max_r, x))
 
 def to_int_rating(x):
-    if x <= 0:
-        return 0
-    return int(clamp_rating(round(x)))
+    return int(clamp_rating(round(float(x))))
 
 
 # ------------------------------------------------------------
-# PREDICCIÓ SVD
+# PREDICCIÓ SVD (detecta automàticament si hi ha bias)
 # ------------------------------------------------------------
-def predict_svd(user_id, item_id, model, users, items):
-    if user_id not in users or item_id not in items:
+def predict_svd(user_id, item_id, model, users, items, user_to_idx, item_to_idx):
+
+    if user_id not in user_to_idx or item_id not in item_to_idx:
         return 0
 
-    u_idx = list(users).index(user_id)
-    i_idx = list(items).index(item_id)
+    u = user_to_idx[user_id]
+    i = item_to_idx[item_id]
 
-    pred = float(np.dot(model.P[u_idx], model.Q[i_idx]))
+    # --- Model sense bias ---
+    if isinstance(model, MatrixFactorization):
+        pred = np.dot(model.P[u], model.Q[i])
+
+    # --- Model amb bias ---
+    elif isinstance(model, MatrixFactorizationBias):
+        pred = (
+            model.mu
+            + model.b_u[u]
+            + model.b_i[i]
+            + np.dot(model.P[u], model.Q[i])
+        )
+
+    else:
+        raise ValueError("Model SVD desconegut!")
+
     return to_int_rating(pred)
 
 
 # ------------------------------------------------------------
-# RECOMANACIONS TOP-N
+# TOP-N RECOMMENDATIONS (automàtic per bias/sense bias)
 # ------------------------------------------------------------
-def recommend_svd(user_id, model, users, items, top_n=10,
-                  exclude_rated=True, rated_items_idx=None):
+def recommend_svd(user_id, model, users, items,
+                  user_to_idx, item_to_idx,
+                  top_n=10,
+                  exclude_rated=True,
+                  rated_items_idx=None):
 
-    if user_id not in users:
+    if user_id not in user_to_idx:
         return []
 
-    u_idx = list(users).index(user_id)
+    u = user_to_idx[user_id]
 
-    # Raw scores per tots els ítems
-    scores = np.dot(model.P[u_idx], model.Q.T)
+    # --- Model sense bias ---
+    if isinstance(model, MatrixFactorization):
+        scores = np.dot(model.P[u], model.Q.T)
 
-    # Excloure items valorats
+    # --- Model amb bias ---
+    elif isinstance(model, MatrixFactorizationBias):
+        scores = (
+            model.mu
+            + model.b_u[u]
+            + model.b_i
+            + np.dot(model.P[u], model.Q.T)
+        )
+
+    # Excloure ítems ja valorats
     if exclude_rated and rated_items_idx is not None:
         scores[rated_items_idx] = -np.inf
 
-    # Top-N índexs
+    # Top N índexs
     top_idx = np.argpartition(scores, -top_n)[-top_n:]
     top_idx = top_idx[np.argsort(scores[top_idx])[::-1]]
 
-    # Convertim cada score a enter
     return [(items[i], to_int_rating(scores[i])) for i in top_idx]
 
 
@@ -74,17 +109,25 @@ def recommend_svd(user_id, model, users, items, top_n=10,
 # TEST
 # ------------------------------------------------------------
 if __name__ == "__main__":
-    model_path = "../models/svd_model.pkl"
-    model, users, items = load_model(model_path)
+
+    model_path = "../models/svd_model.pkl"           # sense bias
+    # model_path = "../models/svd_model_bias.pkl"    # amb bias
+
+    model, users, items, user_to_idx, item_to_idx = load_model(model_path)
 
     sample_user = users[0]
+    example_item = items[0]
+
     print("\nUser seleccionat:", sample_user)
 
-    example_item = items[0]
-    rating_pred = predict_svd(sample_user, example_item, model, users, items)
-    print(f"\nPredicció rating per l'item {example_item}: {rating_pred}")
+    pred = predict_svd(sample_user, example_item, model, users, items,
+                       user_to_idx, item_to_idx)
 
-    recs = recommend_svd(sample_user, model, users, items, top_n=10)
+    print(f"\nPredicció rating per l'item {example_item}: {pred}")
+
+    recs = recommend_svd(sample_user, model, users, items,
+                         user_to_idx, item_to_idx, top_n=10)
+
     print("\nTop 10 recomanacions:")
     for item, score in recs:
         print(f"{item}: {score}")
