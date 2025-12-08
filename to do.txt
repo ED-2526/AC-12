@@ -1,7 +1,6 @@
 TO DO
 
 Nivell molt IMPORTANT:
-- Revisar inferència knn
 - Corregir que hi hagi un main, un main_mètriques, arxius trains, arxius inferències i tots seguixin el mateix format de cridar funcions
 - Biaixos de SVD (bias) → impacte metriques i precisio. Comparar amb i sense
 - Fer split train-test perquè no hi hagi overfitting (cross-validation o tenir un trainset i un testset) --> es fa al main abans de cridar els trains!!!
@@ -23,3 +22,6 @@ DONE (potser fa falta correr algun arxiu però teòricament ja estan)
 - data_cleaner.py
 - train_knn.py
 - train_svd.py
+- infer_knn.py
+- infer_svd.py (falta bias?)
+- main.py
