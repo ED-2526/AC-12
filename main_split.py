@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Dec  8 20:01:14 2025
+
+@author: laura
+"""
+
 
 """
 Main complet amb split train/test, ús d'infer_knn i infer_svd, i proves de predicció / recomanació.
@@ -25,7 +32,7 @@ if __name__ == "__main__":
 
     # ----- 1. Paths -----
     ROOT = os.path.dirname(__file__)
-    DATA_PATH = os.path.join(ROOT, "ratings_Electronics(1).csv")
+    DATA_PATH = r"C:\Users\laura\Desktop\AC\projecte\archive\ratings_Electronics.csv"
     MODELS_DIR = os.path.join(ROOT, "models")
     os.makedirs(MODELS_DIR, exist_ok=True)
     KNN_MODEL_PATH = os.path.join(MODELS_DIR, "knn_item_model.pkl")
@@ -63,7 +70,7 @@ if __name__ == "__main__":
     # ----- 7. Load models (infer_knn / infer_svd) -----
     print("\nCarregant models d'inferència...")
     knn_model = infer_knn.load_model(KNN_MODEL_PATH)
-    svd_model, svd_users, svd_items = infer_svd.load_model(SVD_MODEL_PATH)
+    svd_model, svd_users, svd_items, __, __ = infer_svd.load_model(SVD_MODEL_PATH)
 
     # ----- 8. Exemple d'usuari -----
     sample_user = svd_users[0]
@@ -71,12 +78,12 @@ if __name__ == "__main__":
     example_item = svd_items[0]
 
     # ----- 9. Predicció SVD -----
-    pred_svd = infer_svd.predict_svd(sample_user, example_item, svd_model, svd_users, svd_items)
+    pred_svd = infer_svd.predict_svd(sample_user, example_item, svd_model, svd_users, svd_items, __, __)
     print(f"\n[SVD] Predicció {sample_user} sobre {example_item}: {pred_svd}")
 
     # ----- 10. Recomanacions SVD -----
     print("\nTop 10 recomanacions (SVD):")
-    recs_svd = infer_svd.recommend_svd(sample_user, svd_model, svd_users, svd_items, top_n=10)
+    recs_svd = infer_svd.recommend_svd(sample_user, svd_model, svd_users, svd_items, __, __, top_n=10)
     for item, score in recs_svd:
         print(f"{item}: {score}")
 
