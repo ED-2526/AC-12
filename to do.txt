@@ -22,3 +22,4 @@ Nivell normal/fer a la sessió:
 
 DONE (potser fa falta correr algun arxiu però teòricament ja estan)
 - data_cleaner.py
+- train_knn.py
