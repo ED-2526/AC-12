@@ -1,24 +1,18 @@
-# -*- coding: utf-8 -*-
+
 """
-Main complet amb split train/test,
-ús d'infer_knn i infer_svd, i proves de predicció / recomanació.
+Main complet amb split train/test, ús d'infer_knn i infer_svd, i proves de predicció / recomanació.
 """
 
 import os
 import pandas as pd
-
 from data_cleaner import load_and_clean, visualize_dataset
 from train_knn import train_itemknn
 from train_svd import train_svd_model
-
-# INFERÈNCIES CORRECTES
 import infer_knn
 import infer_svd
 
 
-# ---------------------------------------------------------
-#  Split Train/Test
-# ---------------------------------------------------------
+# Split Train/Test
 def split_train_test(df, test_ratio=0.2):
     df = df.sample(frac=1, random_state=42)  # barreja
     cutoff = int(len(df) * (1 - test_ratio))
@@ -26,10 +20,7 @@ def split_train_test(df, test_ratio=0.2):
     test_df = df.iloc[cutoff:]
     return train_df, test_df
 
-
-# ---------------------------------------------------------
-#  MAIN
-# ---------------------------------------------------------
+# MAIN
 if __name__ == "__main__":
 
     # ----- 1. Paths -----
@@ -43,14 +34,12 @@ if __name__ == "__main__":
     # ----- 2. Load + clean -----
     print("Loading and cleaning dataset...")
     CLEAN_PATH = "cleaned_data.csv"
-
     if os.path.exists(CLEAN_PATH):
         print("cleaned_data.csv trobat. Carregant dataset netejat...")
         df = pd.read_csv(CLEAN_PATH)
     else:
         print("No existeix cleaned_data.csv. Netejant dataset original...")
         df = load_and_clean(DATA_PATH)  # ja es guarda automàticament
-
     print(f"Dataset shape after cleaning: {df.shape}")
 
     #  ----- 3. Visualize dataset -----
@@ -79,7 +68,6 @@ if __name__ == "__main__":
     # ----- 8. Exemple d'usuari -----
     sample_user = svd_users[0]
     print("\nUsuari seleccionat:", sample_user)
-
     example_item = svd_items[0]
 
     # ----- 9. Predicció SVD -----
@@ -95,9 +83,7 @@ if __name__ == "__main__":
     # ----- 11. Predicció KNN -----
     sample_user_knn = list(knn_model.user_index.keys())[0]
     example_item_knn = list(knn_model.item_index.keys())[0]
-
     print("\n[KNN] User seleccionat:", sample_user_knn)
-
     pred_knn = infer_knn.predict_knn(sample_user_knn, example_item_knn, knn_model)
     print(f"[KNN] Predicció {sample_user_knn} sobre {example_item_knn}: {pred_knn}")
 
