@@ -29,7 +29,9 @@ def load_and_clean(path, min_ratings_per_user=20, min_ratings_per_item=100, frac
     #Sampling opcional
     if fraction is True:
         df = df.sample(frac=fraction, random_state=seed)
+    df.to_csv("cleaned_data.csv", index=False)
     return df
+
 
 
 def visualize_dataset(df):
