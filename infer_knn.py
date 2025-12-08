@@ -9,7 +9,7 @@ import pickle
 import numpy as np
 from train_knn import ItemItemKNN  # només la classe amb fit i topk_neighbors
 
-def load_model_knn(model_path="models/knn_item_model.pkl"):
+def load_model(model_path="models/knn_item_model.pkl"):
     """
     Carrega el model entrenat des de disc.
     """
@@ -103,3 +103,4 @@ if __name__ == "__main__":
         print(f"{item}: {score:.1f}")
 
 """
+
