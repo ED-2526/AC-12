@@ -8,7 +8,6 @@ import numpy as np
 from train_svd import MatrixFactorization
 from train_svd_bias import MatrixFactorizationBias
 
-
 # ------------------------------------------------------------
 # LOAD MODEL
 # ------------------------------------------------------------
@@ -40,26 +39,25 @@ def to_int_rating(x):
 # ------------------------------------------------------------
 # PREDICCIÓ SVD (detecta automàticament si hi ha bias)
 # ------------------------------------------------------------
-def predict_svd(user_id, item_id, model, users, items, user_to_idx, item_to_idx):
+def predict_svd(user_id, item_id, model, users, items,
+                user_to_idx=None, item_to_idx=None):
 
-    if user_id not in user_to_idx or item_id not in item_to_idx:
-        return 0
-
-    u = user_to_idx[user_id]
-    i = item_to_idx[item_id]
+    if user_to_idx is None or item_to_idx is None:
+        u_idx = list(users).index(user_id)
+        i_idx = list(items).index(item_id)
+    else:
+        if user_id not in user_to_idx or item_id not in item_to_idx:
+            return 0
+        u_idx = user_to_idx[user_id]
+        i_idx = item_to_idx[item_id]
 
     # --- Model sense bias ---
     if isinstance(model, MatrixFactorization):
-        pred = np.dot(model.P[u], model.Q[i])
+        pred = np.dot(model.P[u_idx], model.Q[i_idx])
 
     # --- Model amb bias ---
     elif isinstance(model, MatrixFactorizationBias):
-        pred = (
-            model.mu
-            + model.b_u[u]
-            + model.b_i[i]
-            + np.dot(model.P[u], model.Q[i])
-        )
+        pred = model.mu + model.b_u[u_idx] + model.b_i[i_idx] + np.dot(model.P[u_idx], model.Q[i_idx])
 
     else:
         raise ValueError("Model SVD desconegut!")
@@ -71,28 +69,25 @@ def predict_svd(user_id, item_id, model, users, items, user_to_idx, item_to_idx)
 # TOP-N RECOMMENDATIONS (automàtic per bias/sense bias)
 # ------------------------------------------------------------
 def recommend_svd(user_id, model, users, items,
-                  user_to_idx, item_to_idx,
+                  user_to_idx=None, item_to_idx=None,
                   top_n=10,
                   exclude_rated=True,
                   rated_items_idx=None):
 
-    if user_id not in user_to_idx:
-        return []
-
-    u = user_to_idx[user_id]
+    if user_to_idx is None or item_to_idx is None:
+        u_idx = list(users).index(user_id)
+    else:
+        if user_id not in user_to_idx:
+            return []
+        u_idx = user_to_idx[user_id]
 
     # --- Model sense bias ---
     if isinstance(model, MatrixFactorization):
-        scores = np.dot(model.P[u], model.Q.T)
+        scores = np.dot(model.P[u_idx], model.Q.T)
 
     # --- Model amb bias ---
     elif isinstance(model, MatrixFactorizationBias):
-        scores = (
-            model.mu
-            + model.b_u[u]
-            + model.b_i
-            + np.dot(model.P[u], model.Q.T)
-        )
+        scores = model.mu + model.b_u[u_idx] + model.b_i + np.dot(model.P[u_idx], model.Q.T)
 
     # Excloure ítems ja valorats
     if exclude_rated and rated_items_idx is not None:
