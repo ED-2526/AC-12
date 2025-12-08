@@ -27,7 +27,7 @@ def load_and_clean(path, min_ratings_per_user=20, min_ratings_per_item=100, frac
     # Filtrar items amb poques valoracions totals
     df = df.groupby("itemID").filter(lambda x: len(x) >= min_ratings_per_item)  
     #Sampling opcional
-    if fraction is True:
+    if fraction is None:
         df = df.sample(frac=fraction, random_state=seed)
     df.to_csv("cleaned_data.csv", index=False)
     return df
@@ -51,3 +51,4 @@ def visualize_dataset(df):
     #print("\nEstadístiques dels items: "df["itemID"].value_counts().describe())
     print("\nUsuaris més actius:", df["userID"].value_counts().head(10)) #de més gran a més petit
     print("\nItems més valorats:", df["itemID"].value_counts().head(10))
+
