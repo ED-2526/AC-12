@@ -3,7 +3,7 @@ TO DO
 Nivell molt IMPORTANT:
 - Revisar inferència knn
 - Corregir que hi hagi un main, un main_mètriques, arxius trains, arxius inferències i tots seguixin el mateix format de cridar funcions
-- Fer split train-test perquè no hi hagi overfitting (cross-validation o tenir un trainset i un testset) 
+- Fer split train-test perquè no hi hagi overfitting (cross-validation o tenir un trainset i un testset) --> es fa al main abans de cridar els trains!!!
 - Ficar treshold, en quin moment un item recomanat es considera bo amb un 4 de rating???
 - Provar mètriques en un sol arxiu (precission, recall…)
 - Fer un codi que compari els nostres codis amb llibreria lenskit que retorni un gràfic i/o que compari el KNN amb FunckSVD.
@@ -18,3 +18,7 @@ Nivell important:
 
 Nivell normal/fer a la sessió:
 - Preguntar què i com s’ha d’entregar. Codi? Informe? Presentació? Ho deixem tot al Github? 
+
+
+DONE (potser fa falta correr algun arxiu però teòricament ja estan)
+- data_cleaner.py
