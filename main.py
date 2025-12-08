@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from data_cleaner import load_and_clean, visualize_dataset
 from train_knn import train_itemknn
 from train_svd import train_svd_model
@@ -18,7 +19,13 @@ if __name__ == "__main__":
 
     # ----- 2. Load + clean -----
     print("Loading and cleaning dataset...")
-    df = load_and_clean(DATA_PATH)
+    CLEAN_PATH = "cleaned_data.csv"
+    if os.path.exists(CLEAN_PATH):
+        print("cleaned_data.csv trobat. Carregant dataset netejat...")
+        df = pd.read_csv(CLEAN_PATH)
+    else:
+        print("No existeix cleaned_data.csv. Netejant dataset original...")
+        df = load_and_clean(DATA_PATH)  # ja es guarda automàticament
     print(f"Dataset shape after cleaning: {df.shape}")
 
     #  ----- 3. Visualize dataset -----
@@ -62,6 +69,12 @@ if __name__ == "__main__":
     example_item_knn = list(knn_inf.model.item_index.keys())[0]
     rating_pred_knn = knn_inf.predict(sample_user_knn, example_item_knn)
     print(f"[KNN] Predicció rating per l'item {example_item_knn}: {rating_pred_knn:.3f}")
+
+    recs_knn = knn_inf.recommend(sample_user_knn, top_n=10)
+    print("\n[KNN] Top 10 recomanacions:")
+    for item, score in recs_knn:
+        print(f"{item}: {score:.3f}")
+
 
     recs_knn = knn_inf.recommend(sample_user_knn, top_n=10)
     print("\n[KNN] Top 10 recomanacions:")
