@@ -219,9 +219,9 @@ for model_name, name_print in [
     print(f"NDCG@{K}:      {np.mean(metrics[model_name]['ndcg']):.4f}")
 
 print("\n--- RMSE ---")
-print(f"KNN:         {rmse_knn:.4f}")
-print(f"SVD:         {rmse_svd:.4f}")
-print(f"SVD Bias:    {rmse_bias:.4f}")
+print(f"KNN:         {rmse_knn:.4f}" if rmse_knn is not None else "KNN:         N/A")
+print(f"SVD:         {rmse_svd:.4f}" if rmse_svd is not None else "SVD:         N/A")
+print(f"SVD Bias:    {rmse_bias:.4f}" if rmse_bias is not None else "SVD Bias:    N/A")
 print("\n===========================================")
 
 
@@ -261,6 +261,7 @@ plot_bar3(rmse_knn, rmse_svd, rmse_bias,
           "RMSE Comparison", "RMSE")
 
 print("\nGràfics generats correctament.")
+
 
 
 
