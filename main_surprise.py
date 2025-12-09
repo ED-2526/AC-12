@@ -158,13 +158,14 @@ print(f"Precision@{K}: {np.mean(prec_knn):.4f}")
 print(f"Recall@{K}:    {np.mean(rec_knn):.4f}")
 print(f"MAP@{K}:       {np.mean(map_knn):.4f}")
 print(f"NDCG@{K}:      {np.mean(ndcg_knn):.4f}")
-print(f"RMSE:          {rmse_knn:.4f}")
+print(f"RSME:         {rmse_svd:.4f}" if rmse_knn is not None else "RSME:         N/A")
 
 print(f"\n--- SVD ---")
 print(f"Precision@{K}: {np.mean(prec_svd):.4f}")
 print(f"Recall@{K}:    {np.mean(rec_svd):.4f}")
 print(f"MAP@{K}:       {np.mean(map_svd):.4f}")
 print(f"NDCG@{K}:      {np.mean(ndcg_svd):.4f}")
-print(f"RMSE:          {rmse_svd:.4f}")
+print(f"RSME:           {rmse_svd:.4f}" if rmse_svd is not None else "RSME:         N/A")
 print("\n================================================")
+
 
