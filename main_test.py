@@ -201,10 +201,10 @@ if rmse_count != 0:
     rmse_knn = np.sqrt(rmse_knn_sum / rmse_count)
     rmse_svd = np.sqrt(rmse_svd_sum / rmse_count)
     rmse_bias = np.sqrt(rmse_bias_sum / rmse_count)
-else: 
-    rmse_knn = np.sqrt(rmse_knn_sum / 1e-8)
-    rmse_svd = np.sqrt(rmse_svd_sum / 1e-8)
-    rmse_bias = np.sqrt(rmse_bias_sum / 1e-8)
+else: # quan es dona divisió per 0 (rsme_count=0), el model no pot generar cap predicció
+    rmse_knn = None
+    rmse_svd = None
+    rmse_bias = None
 
 print("\n================ RESULTATS ================")
 for model_name, name_print in [
@@ -261,5 +261,6 @@ plot_bar3(rmse_knn, rmse_svd, rmse_bias,
           "RMSE Comparison", "RMSE")
 
 print("\nGràfics generats correctament.")
+
 
 
