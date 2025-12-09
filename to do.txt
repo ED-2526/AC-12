@@ -23,5 +23,6 @@ DONE (potser fa falta correr algun arxiu però teòricament ja estan)
 - train_knn.py
 - train_svd.py
 - infer_knn.py
-- infer_svd.py (falta bias?)
+- infer_svd.py 
+- infer_svd_bias.py
 - main.py
