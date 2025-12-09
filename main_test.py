@@ -202,9 +202,9 @@ if rmse_count != 0:
     rmse_svd = np.sqrt(rmse_svd_sum / rmse_count)
     rmse_bias = np.sqrt(rmse_bias_sum / rmse_count)
 else: 
-    rmse_knn = 0 
-    rmse_svd = 0
-    rmse_bias = 0
+    rmse_knn = np.sqrt(rmse_knn_sum / 1e-8)
+    rmse_svd = np.sqrt(rmse_svd_sum / 1e-8)
+    rmse_bias = np.sqrt(rmse_bias_sum / 1e-8)
 
 print("\n================ RESULTATS ================")
 for model_name, name_print in [
@@ -261,4 +261,5 @@ plot_bar3(rmse_knn, rmse_svd, rmse_bias,
           "RMSE Comparison", "RMSE")
 
 print("\nGràfics generats correctament.")
+
 
