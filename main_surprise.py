@@ -145,8 +145,12 @@ for u, true_item in tqdm(zip(test_users, test_items), total=len(test_users)):
 
 # Final metrics
 N = len(test_users)
-rmse_knn = np.sqrt(rmse_knn / N)
-rmse_svd = np.sqrt(rmse_svd / N)
+if N > 0:
+    rmse_knn = np.sqrt(rmse_knn / N) 
+    rmse_svd = np.sqrt(rmse_svd / N) 
+else:
+    rmse_knn = 0
+    rmse_svd = 0
 
 print("\n============== RESULTATS SURPRISE ==============")
 print(f"\n--- KNN ---")
@@ -163,3 +167,4 @@ print(f"MAP@{K}:       {np.mean(map_svd):.4f}")
 print(f"NDCG@{K}:      {np.mean(ndcg_svd):.4f}")
 print(f"RMSE:          {rmse_svd:.4f}")
 print("\n================================================")
+
