@@ -149,8 +149,8 @@ if N > 0:
     rmse_knn = np.sqrt(rmse_knn / N) 
     rmse_svd = np.sqrt(rmse_svd / N) 
 else:
-    rmse_knn = 0
-    rmse_svd = 0
+    rmse_knn = None
+    rmse_svd = None
 
 print("\n============== RESULTATS SURPRISE ==============")
 print(f"\n--- KNN ---")
@@ -167,5 +167,6 @@ print(f"MAP@{K}:       {np.mean(map_svd):.4f}")
 print(f"NDCG@{K}:      {np.mean(ndcg_svd):.4f}")
 print(f"RSME:           {rmse_svd:.4f}" if rmse_svd is not None else "RSME:         N/A")
 print("\n================================================")
+
 
 
