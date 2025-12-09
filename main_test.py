@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 from data_cleaner import load_and_clean
 from train_knn import train_itemknn
 from train_svd import train_svd_model
-from infer_knn import predict as knn_predict, recommend as knn_recommend
-from infer_svd import predict as svd_predict, recommend as svd_recommend
+from infer_knn import predict_knn as knn_predict, recommend_knn as knn_recommend
+from infer_svd import predict_svd as svd_predict, recommend_svd as svd_recommend
 
 # ----------------------------------------------------------
 #              HELPER: METRIQUES DE RECOMANACIÓ
@@ -185,4 +185,5 @@ plot_bar(np.mean(ndcg_knn), np.mean(ndcg_svd), "NDCG@K Comparison", "NDCG@K")
 plot_bar(rmse_knn, rmse_svd, "RMSE Comparison", "RMSE")
 
 print("\nGràfics generats correctament.")
+
 
