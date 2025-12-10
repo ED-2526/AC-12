@@ -7,7 +7,6 @@ Comparació directa amb els models propis.
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 from surprise import Dataset, Reader, KNNBasic, SVD
 from data_cleaner import load_and_clean  # el teu codi
 
@@ -102,7 +101,7 @@ prec_svd = []; rec_svd = []; map_svd = []; ndcg_svd = []
 
 print("\n=== INICIANT TEST... ===")
 
-for u, true_item in tqdm(zip(test_users, test_items), total=len(test_users)):
+for u, true_item in zip(test_users, test_items):
 
     true_rating = test_ratings[u]
     relevant = [true_item]
@@ -167,6 +166,7 @@ print(f"MAP@{K}:       {np.mean(map_svd):.4f}")
 print(f"NDCG@{K}:      {np.mean(ndcg_svd):.4f}")
 print(f"RSME:           {rmse_svd:.4f}" if rmse_svd is not None else "RSME:         N/A")
 print("\n================================================")
+
 
 
 
