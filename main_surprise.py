@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from surprise import Dataset, Reader, KNNBasic, SVD
-from data_cleaner import load_and_clean  # el teu codi
+from data_cleaner import load_and_clean  
 
 
 # -----------------------------------------
@@ -166,6 +166,7 @@ print(f"MAP@{K}:       {np.mean(map_svd):.4f}")
 print(f"NDCG@{K}:      {np.mean(ndcg_svd):.4f}")
 print(f"RSME:           {rmse_svd:.4f}" if rmse_svd is not None else "RSME:         N/A")
 print("\n================================================")
+
 
 
 
