@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Dec  8 20:01:14 2025
-
-@author: laura
-"""
-
 
 """
 Main complet amb split train/test, ús d'infer_knn i infer_svd, i proves de predicció / recomanació.
@@ -70,22 +64,34 @@ if __name__ == "__main__":
     # ----- 7. Load models (infer_knn / infer_svd) -----
     print("\nCarregant models d'inferència...")
     knn_model = infer_knn.load_model(KNN_MODEL_PATH)
-    svd_model, svd_users, svd_items = infer_svd.load_model(SVD_MODEL_PATH)
-
+    
+    # NOVA VERSIÓ: també rep els diccionaris d'índexs
+    svd_model, svd_users, svd_items, user_to_idx, item_to_idx = infer_svd.load_model(SVD_MODEL_PATH)
+    
     # ----- 8. Exemple d'usuari -----
     sample_user = svd_users[0]
-    print("\nUsuari seleccionat:", sample_user)
     example_item = svd_items[0]
-
+    
     # ----- 9. Predicció SVD -----
-    pred_svd = infer_svd.predict_svd(sample_user, example_item, svd_model, svd_users, svd_items)
+    pred_svd = infer_svd.predict_svd(
+        sample_user,
+        example_item,
+        svd_model, svd_users, svd_items,
+        user_to_idx, item_to_idx
+    )
     print(f"\n[SVD] Predicció {sample_user} sobre {example_item}: {pred_svd}")
-
+    
     # ----- 10. Recomanacions SVD -----
     print("\nTop 10 recomanacions (SVD):")
-    recs_svd = infer_svd.recommend_svd(sample_user, svd_model, svd_users, svd_items, top_n=10)
+    recs_svd = infer_svd.recommend_svd(
+        sample_user,
+        svd_model, svd_users, svd_items,
+        user_to_idx, item_to_idx,
+        top_n=10
+    )
     for item, score in recs_svd:
         print(f"{item}: {score}")
+
 
     # ----- 11. Predicció KNN -----
     sample_user_knn = list(knn_model.user_index.keys())[0]
@@ -100,3 +106,4 @@ if __name__ == "__main__":
     for item, score in recs_knn:
 
         print(f"{item}: {score}")
+
