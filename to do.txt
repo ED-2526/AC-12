@@ -9,6 +9,8 @@ Nivell molt IMPORTANT:
 - Fer un codi que compari els nostres codis amb llibreria lenskit que retorni un gràfic i/o que compari el KNN amb FunckSVD.
 - Comparar amb dif valors: k, lr, reg, epoch → SVD i k, use_topk → KNN
 - modificar el split test amb cross validation
+- fer README
+- revisar que no estiguem entrenant valors 0
 
 Nivell important:
 - Fer notebook ‘Results.ipynb’ amb RMSE, MAE, Corbes d’error, Temps d’entrenament… On es trobin les imatges amb el codi corresponent
