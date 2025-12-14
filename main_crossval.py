@@ -1,22 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 MAIN CROSS-VALIDATION SCRIPT
-Avalua:
+
+K-Fold Cross Validation (per usuari) per comparar:
 - KNN
 - SVD
 - SVD amb bias
-
-Mètriques:
-- Precision@K
-- Recall@K
-- MAP@K
-- NDCG@K
-- RMSE
 """
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import KFold
 
 from data_cleaner import load_and_clean
 from train_knn import train_itemknn
@@ -28,22 +21,22 @@ from infer_svd import predict_svd, recommend_svd
 
 
 # ----------------------------------------------------------
-#              METRIQUES
+#               MÈTRIQUES
 # ----------------------------------------------------------
 
 def precision_k(recommended, relevant, k):
-    return len(set(recommended[:k]) & set(relevant)) / k if k > 0 else 0.0
+    return len(set(recommended[:k]) & set(relevant)) / k
 
 def recall_k(recommended, relevant, k):
-    return len(set(recommended[:k]) & set(relevant)) / len(relevant) if relevant else 0.0
+    return len(set(recommended[:k]) & set(relevant)) / len(relevant)
 
 def apk(recommended, relevant, k):
-    score, hits = 0.0, 0
+    score, hits = 0, 0
     for i, item in enumerate(recommended[:k]):
         if item in relevant:
             hits += 1
             score += hits / (i + 1)
-    return score / min(len(relevant), k) if relevant else 0.0
+    return score / min(len(relevant), k)
 
 def ndcg_k(recommended, relevant, k):
     dcg = sum(
@@ -59,131 +52,135 @@ def ndcg_k(recommended, relevant, k):
 
 
 # ----------------------------------------------------------
-#              MAIN CROSS VALIDATION
+#          CREAR FOLDS PER USUARI
 # ----------------------------------------------------------
 
-if __name__ == "__main__":
+def user_kfold_split(df, n_splits=5, seed=42):
+    rng = np.random.RandomState(seed)
+    folds = []
 
-    PATH = r"C:\Users\laura\Desktop\AC\projecte\archive\ratings_Electronics.csv"
-    df = load_and_clean(PATH)
+    for _, user_df in df.groupby("userID"):
+        idx = user_df.index.to_numpy()
+        rng.shuffle(idx)
+        splits = np.array_split(idx, n_splits)
 
-    N_FOLDS = 5
-    K = 10
+        for i in range(n_splits):
+            if len(folds) <= i:
+                folds.append([])
+            folds[i].extend(splits[i])
 
-    kf = KFold(n_splits=N_FOLDS, shuffle=True, random_state=42)
+    return folds
 
-    # Resultats globals
-    results = {
-        "knn": {"prec": [], "rec": [], "map": [], "ndcg": [], "rmse": []},
-        "svd": {"prec": [], "rec": [], "map": [], "ndcg": [], "rmse": []},
-        "svd_bias": {"prec": [], "rec": [], "map": [], "ndcg": [], "rmse": []},
-    }
 
-    print(f"\n=== INICIANT {N_FOLDS}-FOLD CROSS VALIDATION ===")
+# ----------------------------------------------------------
+#                  MAIN
+# ----------------------------------------------------------
 
-    for fold, (train_idx, test_idx) in enumerate(kf.split(df), 1):
-        print(f"\n--- Fold {fold}/{N_FOLDS} ---")
+PATH = r"C:\Users\laura\Desktop\AC\projecte\archive\ratings_Electronics.csv"
+K = 10
+N_FOLDS = 5
 
-        train = df.iloc[train_idx]
-        test = df.iloc[test_idx]
+df = load_and_clean(PATH)
+print("Dataset:", df.shape)
 
-        # Entrenament
-        knn_model = train_itemknn(train, k=20, use_topk=True)
+folds = user_kfold_split(df, n_splits=N_FOLDS)
 
-        svd_model, svd_users, svd_items = train_svd_model(
-            train, k=20, epochs=15
-        )
-        svd_u2i = {u: i for i, u in enumerate(svd_users)}
-        svd_i2i = {i: j for j, i in enumerate(svd_items)}
+results = {
+    "knn": {"prec": [], "rec": [], "map": [], "ndcg": [], "rmse": []},
+    "svd": {"prec": [], "rec": [], "map": [], "ndcg": [], "rmse": []},
+    "svd_bias": {"prec": [], "rec": [], "map": [], "ndcg": [], "rmse": []},
+}
 
-        svd_bias_model, svd_b_users, svd_b_items = train_svd_bias(
-            train, k=20, epochs=15
-        )
-        svd_b_u2i = {u: i for i, u in enumerate(svd_b_users)}
-        svd_b_i2i = {i: j for j, i in enumerate(svd_b_items)}
+# ----------------------------------------------------------
+#               LOOP FOLDS
+# ----------------------------------------------------------
 
-        # Per usuari: ítems vistos al train
-        train_items_per_user = train.groupby("userID")["itemID"].apply(set).to_dict()
-        all_items = set(train["itemID"])
+for f in range(N_FOLDS):
+    print(f"\n=== FOLD {f+1}/{N_FOLDS} ===")
 
-        # Acumuladors RMSE
-        rmse = {"knn": [], "svd": [], "svd_bias": []}
+    test_idx = folds[f]
+    test = df.loc[test_idx]
+    train = df.drop(test_idx)
 
-        # Loop test
-        for _, row in test.iterrows():
-            u = row["userID"]
-            true_item = row["itemID"]
-            true_rating = row["rating"]
-            relevant = [true_item]
+    # -------------------------
+    # ENTRENAMENT
+    # -------------------------
 
-            rated = train_items_per_user.get(u, set())
-            unseen = list(all_items - rated)
+    knn_model = train_itemknn(train, k=20, use_topk=True)
 
-            # ---------- KNN ----------
-            rec_knn = [i for i, _ in recommend_knn(u, knn_model, top_n=K)]
-            results["knn"]["prec"].append(precision_k(rec_knn, relevant, K))
-            results["knn"]["rec"].append(recall_k(rec_knn, relevant, K))
-            results["knn"]["map"].append(apk(rec_knn, relevant, K))
-            results["knn"]["ndcg"].append(ndcg_k(rec_knn, relevant, K))
+    svd_model, svd_users, svd_items = train_svd_model(
+        train, k=20, epochs=30
+    )
+    svd_u2i = {u: i for i, u in enumerate(svd_users)}
+    svd_i2i = {i: j for j, i in enumerate(svd_items)}
 
-            pred = predict_knn(u, true_item, knn_model)
-            if pred != 0:
-                rmse["knn"].append((pred - true_rating) ** 2)
+    svd_bias_model, sb_users, sb_items = train_svd_bias(
+        train, k=20, epochs=30
+    )
+    sb_u2i = {u: i for i, u in enumerate(sb_users)}
+    sb_i2i = {i: j for j, i in enumerate(sb_items)}
 
-            # ---------- SVD ----------
-            rec_svd = [i for i, _ in recommend_svd(
-                u, svd_model, svd_users, svd_items,
-                svd_u2i, svd_i2i, top_n=K
-            )]
-            results["svd"]["prec"].append(precision_k(rec_svd, relevant, K))
-            results["svd"]["rec"].append(recall_k(rec_svd, relevant, K))
-            results["svd"]["map"].append(apk(rec_svd, relevant, K))
-            results["svd"]["ndcg"].append(ndcg_k(rec_svd, relevant, K))
+    # -------------------------
+    # TEST
+    # -------------------------
 
-            pred = predict_svd(
-                u, true_item, svd_model,
-                svd_users, svd_items,
-                svd_u2i, svd_i2i
-            )
-            if pred != 0:
-                rmse["svd"].append((pred - true_rating) ** 2)
+    rmse_knn = rmse_svd = rmse_bias = 0
+    count = 0
 
-            # ---------- SVD BIAS ----------
-            rec_b = [i for i, _ in recommend_svd(
-                u, svd_bias_model, svd_b_users, svd_b_items,
-                svd_b_u2i, svd_b_i2i, top_n=K
-            )]
-            results["svd_bias"]["prec"].append(precision_k(rec_b, relevant, K))
-            results["svd_bias"]["rec"].append(recall_k(rec_b, relevant, K))
-            results["svd_bias"]["map"].append(apk(rec_b, relevant, K))
-            results["svd_bias"]["ndcg"].append(ndcg_k(rec_b, relevant, K))
+    for _, row in test.iterrows():
+        u, true_item, true_rating = row["userID"], row["itemID"], row["rating"]
+        relevant = [true_item]
 
-            pred = predict_svd(
-                u, true_item, svd_bias_model,
-                svd_b_users, svd_b_items,
-                svd_b_u2i, svd_b_i2i
-            )
-            if pred != 0:
-                rmse["svd_bias"].append((pred - true_rating) ** 2)
+        # ---------- KNN ----------
+        rec_knn = [i for i, _ in recommend_knn(u, knn_model, top_n=K)]
+        results["knn"]["prec"].append(precision_k(rec_knn, relevant, K))
+        results["knn"]["rec"].append(recall_k(rec_knn, relevant, K))
+        results["knn"]["map"].append(apk(rec_knn, relevant, K))
+        results["knn"]["ndcg"].append(ndcg_k(rec_knn, relevant, K))
 
-        # RMSE per fold
-        for m in rmse:
-            if rmse[m]:
-                results[m]["rmse"].append(np.sqrt(np.mean(rmse[m])))
-            else:
-                results[m]["rmse"].append(0.0)
+        pred = predict_knn(u, true_item, knn_model)
+        if pred != 0:
+            rmse_knn += (pred - true_rating) ** 2
 
-    # ----------------------------------------------------------
-    #              RESULTATS FINALS
-    # ----------------------------------------------------------
+        # ---------- SVD ----------
+        rec_svd = [i for i, _ in recommend_svd(
+            u, svd_model, svd_users, svd_items, svd_u2i, svd_i2i, K)]
+        results["svd"]["prec"].append(precision_k(rec_svd, relevant, K))
+        results["svd"]["rec"].append(recall_k(rec_svd, relevant, K))
+        results["svd"]["map"].append(apk(rec_svd, relevant, K))
+        results["svd"]["ndcg"].append(ndcg_k(rec_svd, relevant, K))
 
-    print("\n================ RESULTATS FINALS (CV) ================")
-    for model in ["knn", "svd", "svd_bias"]:
-        print(f"\n--- {model.upper()} ---")
-        print(f"Precision@{K}: {np.mean(results[model]['prec']):.4f}")
-        print(f"Recall@{K}:    {np.mean(results[model]['rec']):.4f}")
-        print(f"MAP@{K}:       {np.mean(results[model]['map']):.4f}")
-        print(f"NDCG@{K}:      {np.mean(results[model]['ndcg']):.4f}")
-        print(f"RMSE:          {np.mean(results[model]['rmse']):.4f}")
+        pred = predict_svd(u, true_item, svd_model, svd_users, svd_items, svd_u2i, svd_i2i)
+        rmse_svd += (pred - true_rating) ** 2
 
-    print("\n===============================================")
+        # ---------- SVD BIAS ----------
+        rec_sb = [i for i, _ in recommend_svd(
+            u, svd_bias_model, sb_users, sb_items, sb_u2i, sb_i2i, K)]
+        results["svd_bias"]["prec"].append(precision_k(rec_sb, relevant, K))
+        results["svd_bias"]["rec"].append(recall_k(rec_sb, relevant, K))
+        results["svd_bias"]["map"].append(apk(rec_sb, relevant, K))
+        results["svd_bias"]["ndcg"].append(ndcg_k(rec_sb, relevant, K))
+
+        pred = predict_svd(u, true_item, svd_bias_model, sb_users, sb_items, sb_u2i, sb_i2i)
+        rmse_bias += (pred - true_rating) ** 2
+
+        count += 1
+
+    results["knn"]["rmse"].append(np.sqrt(rmse_knn / count))
+    results["svd"]["rmse"].append(np.sqrt(rmse_svd / count))
+    results["svd_bias"]["rmse"].append(np.sqrt(rmse_bias / count))
+
+
+# ----------------------------------------------------------
+#                 RESULTATS FINALS
+# ----------------------------------------------------------
+
+print("\n================ CROSS-VALIDATION RESULTS ================")
+
+for model in results:
+    print(f"\n--- {model.upper()} ---")
+    for m in ["prec", "rec", "map", "ndcg", "rmse"]:
+        vals = results[model][m]
+        print(f"{m.upper():8}: {np.mean(vals):.4f} ± {np.std(vals):.4f}")
+
+print("\n=========================================================")
