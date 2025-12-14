@@ -19,7 +19,6 @@ from train_svd_bias import train_svd_bias
 from infer_knn import predict_knn, recommend_knn
 from infer_svd import predict_svd, recommend_svd
 
-
 # ----------------------------------------------------------
 #               MÈTRIQUES
 # ----------------------------------------------------------
@@ -50,6 +49,12 @@ def ndcg_k(recommended, relevant, k):
     )
     return dcg / idcg if idcg > 0 else 0.0
 
+# Funció per calcular mitjana i desviació estàndard ignorants dels None
+def mean_std_ignore_none(values):
+    vals = [v for v in values if v is not None]
+    if len(vals) == 0:
+        return None, None
+    return np.mean(vals), np.std(vals)
 
 # ----------------------------------------------------------
 #          CREAR FOLDS PER USUARI
@@ -70,7 +75,6 @@ def user_kfold_split(df, n_splits=5, seed=42):
             folds[i].extend(splits[i])
 
     return folds
-
 
 # ----------------------------------------------------------
 #                  MAIN
@@ -175,8 +179,6 @@ for f in range(N_FOLDS):
         results["svd"]["rmse"].append(None)
         results["svd_bias"]["rmse"].append(None)
 
-
-
 # ----------------------------------------------------------
 #                 RESULTATS FINALS
 # ----------------------------------------------------------
@@ -186,9 +188,10 @@ print("\n================ CROSS-VALIDATION RESULTS ================")
 for model in results:
     print(f"\n--- {model.upper()} ---")
     for m in ["prec", "rec", "map", "ndcg", "rmse"]:
-        vals = results[model][m]
-        print(f"{m.upper():8}: {np.mean(vals):.4f} ± {np.std(vals):.4f}")
+        mean, std = mean_std_ignore_none(results[model][m])
+        if mean is None:
+            print(f"{m.upper():8}: N/A")
+        else:
+            print(f"{m.upper():8}: {mean:.4f} ± {std:.4f}")
 
 print("\n=========================================================")
-
-
