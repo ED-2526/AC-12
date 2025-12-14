@@ -169,11 +169,11 @@ for f in range(N_FOLDS):
     if count > 0:
         results["knn"]["rmse"].append(np.sqrt(rmse_knn / count))
         results["svd"]["rmse"].append(np.sqrt(rmse_svd / count))
-        results["bias"]["rmse"].append(np.sqrt(rmse_bias / count))
+        results["svd_bias"]["rmse"].append(np.sqrt(rmse_bias / count))
     else:
         results["knn"]["rmse"].append(None)
         results["svd"]["rmse"].append(None)
-        results["bias"]["rmse"].append(None)
+        results["svd_bias"]["rmse"].append(None)
 
 
 
@@ -190,4 +190,5 @@ for model in results:
         print(f"{m.upper():8}: {np.mean(vals):.4f} ± {np.std(vals):.4f}")
 
 print("\n=========================================================")
+
 
