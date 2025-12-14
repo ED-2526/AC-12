@@ -77,13 +77,15 @@ class ItemItemKNN:
             self.topk_neighbors = sim
 
 
-def train_itemknn(df, k=20, model_path="/Users/luciarodriguez/Desktop/models/knn_item_model.pkl", use_topk=True):
+def train_itemknn(df, k=20, model_path=None, use_topk=True):
     model = ItemItemKNN(k=k, use_topk=use_topk)
     model.fit(df) #entrena el model
-    os.makedirs(os.path.dirname(model_path) or ".", exist_ok=True) # ensure models directory exists
-    with open(model_path, "wb") as f:
-        pickle.dump(model, f) #guarda el pickle generat
+    if model_path is not None:
+        os.makedirs(os.path.dirname(model_path) or ".", exist_ok=True) # ensure models directory exists
+        with open(model_path, "wb") as f:
+            pickle.dump(model, f) #guarda el pickle generat
     return model #el codi que cridi la funció podrà seguir utilitzant el model.
+  
         
 
 """
@@ -96,3 +98,4 @@ if __name__ == "__main__":
     model = train_itemknn(df, k=20, model_path="../models/knn_item_model.pkl", use_topk=True)
     print("Saved model to ../models/knn_item_model.pkl")
 """
+
