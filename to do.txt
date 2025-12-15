@@ -1,6 +1,7 @@
 TO DO
 
 Nivell important:
+- Endreçar document LAURA
 - revisar que tots seguexin el mateix format de cridar funcions i no guardar a /models
 - Comparar amb i sense biais. Impacte metriques i precisio.
 - Entendre les mètriques
