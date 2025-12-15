@@ -16,6 +16,15 @@ Nivell important:
 PRESENTACIÓ
 1. Data clener: em netejat i preparat el dataset de treball ( i mostrar comparacions entre el origianl i el editat)
 2. Entendre els pros i contres dels diferents models vistos a classe i dir quins i per que em triat com a més apropiat per aplicar al problema
+3. Explicar el nostre model baseline i reproduir-lo (train)
+4. Respondre aquestes preguntes amb evidencies (taules, figures, imatges...):
+  – Is the amount of data relevant?
+  – On each process, does the system overfit?
+  – Does “that” specific process help on increasing performance?
+  – Is there an specific kind of inputs where the system fails more? (ie: how big is the bias)
+  – Which is the impact of the model size?
+  – Does “X modification” on the model solve “Y” problem detected?
+
 
 
 
