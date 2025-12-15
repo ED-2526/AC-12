@@ -8,7 +8,7 @@ Nivell important:
 - Fer gràfics
 - Comparar amb dif valors: k, lr, reg, epoch → SVD i k, use_topk → KNN
 - Fer README
-- Mirar si cal modificar el codi utilitzant la llibreria pandas (matriu user x item) o ja ens sembla bé fer-ho amb bucles
+
 
 Nivell normal/fer a la sessió:
 - Preguntar què i com s’ha d’entregar. Informe → 5/1 Presentació i codi ho deixem tot al Github? 
