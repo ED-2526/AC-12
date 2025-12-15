@@ -271,30 +271,6 @@ plt.show()
 
 
 # ----------------------------------------------------------
-# PRECISION–RECALL CURVE
-# ----------------------------------------------------------
-
-plt.figure()
-
-for model, name in zip(models, model_names):
-    plt.plot(
-        metrics[model]["rec"],
-        metrics[model]["prec"],
-        marker="o",
-        linestyle="",
-        alpha=0.4,
-        label=name
-    )
-
-plt.xlabel("Recall")
-plt.ylabel("Precision")
-plt.title("Precision–Recall Curve")
-plt.legend()
-plt.grid()
-plt.show()
-
-
-# ----------------------------------------------------------
 # RMSE COMPARACIÓ
 # ----------------------------------------------------------
 
@@ -307,6 +283,7 @@ plt.title("RMSE per model")
 plt.ylabel("RMSE")
 plt.grid(axis="y")
 plt.show()
+
 
 
 
