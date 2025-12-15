@@ -195,3 +195,69 @@ for model in results:
             print(f"{m.upper():8}: {mean:.4f} ± {std:.4f}")
 
 print("\n=========================================================")
+
+# ==========================================================
+#                      GRÀFICS CROSS-VALIDATION
+# ==========================================================
+
+import matplotlib.pyplot as plt
+
+models = ["knn", "svd", "svd_bias"]
+model_names = ["KNN", "SVD", "SVD amb bias"]
+metrics_names = ["prec", "rec", "map", "ndcg", "rmse"]
+
+# ----------------------------------------------------------
+# MITJANES DE CROSS-VALIDATION
+# ----------------------------------------------------------
+
+mean_results = {
+    model: {
+        m: mean_std_ignore_none(results[model][m])[0]
+        for m in metrics_names
+    }
+    for model in models
+}
+
+# ----------------------------------------------------------
+# GRÀFICS PER MÈTRICA
+# ----------------------------------------------------------
+
+for m in metrics_names:
+    plt.figure()
+    vals = [mean_results[model][m] for model in models]
+    plt.bar(model_names, vals)
+    plt.title(f"Cross-validation — {m.upper()}")
+    plt.ylabel(m.upper())
+    plt.xlabel("Model")
+    plt.grid(axis="y")
+    plt.show()
+
+
+
+# ==========================================================
+#      COMPARACIÓ DIRECTA: SVD vs SVD AMB BIAS (CROSSVAL)
+# ==========================================================
+
+metrics_compare = ["prec", "rec", "map", "ndcg", "rmse"]
+
+svd_means = []
+bias_means = []
+
+for m in metrics_compare:
+    mean_svd, _ = mean_std_ignore_none(results["svd"][m])
+    mean_bias, _ = mean_std_ignore_none(results["svd_bias"][m])
+    svd_means.append(mean_svd)
+    bias_means.append(mean_bias)
+
+x = np.arange(len(metrics_compare))
+
+plt.figure()
+plt.bar(x - 0.2, svd_means, width=0.4, label="SVD")
+plt.bar(x + 0.2, bias_means, width=0.4, label="SVD amb bias")
+
+plt.xticks(x, [m.upper() for m in metrics_compare])
+plt.ylabel("Valor mitjà (cross-validation)")
+plt.title("Comparació SVD vs SVD amb bias (Cross-validation)")
+plt.legend()
+plt.grid(axis="y")
+plt.show()
