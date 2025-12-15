@@ -13,13 +13,3 @@ Nivell important:
 Nivell normal/fer a la sessió:
 - Preguntar què i com s’ha d’entregar. Informe → 5/1 Presentació i codi ho deixem tot al Github? 
 - Ficar treshold, en quin moment un item recomanat es considera bo amb un 4 de rating???
-
-
-DONE (potser fa falta correr algun arxiu però teòricament ja estan)
-- data_cleaner.py
-- train_knn.py
-- train_svd.py
-- infer_knn.py
-- infer_svd.py 
-- infer_svd_bias.py
-- main_split.py (falta que cridi a mètriques)
