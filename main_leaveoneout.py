@@ -225,42 +225,90 @@ print(f"SVD Bias:    {rmse_bias:.4f}" if rmse_bias is not None else "SVD Bias:  
 print("\n===========================================")
 
 
+# ==========================================================
+#                      GRÀFICS
+# ==========================================================
+
+print("\nGenerant gràfics...")
+
+models = ["knn", "svd", "svd_bias"]
+model_names = ["KNN", "SVD", "SVD amb bias"]
+metrics_names = ["prec", "rec", "map", "ndcg"]
+
 # ----------------------------------------------------------
-#              GRÀFICS COMPARATIUS
+# COMPARACIÓ GLOBAL PER MÈTRICA
 # ----------------------------------------------------------
 
-def plot_bar3(a, b, c, title, ylabel):
-    plt.figure(figsize=(6,4))
-    plt.bar(["KNN", "SVD", "SVD+B"], [a, b, c])
-    plt.title(title)
-    plt.ylabel(ylabel)
-    plt.grid(axis="y", linestyle="--", alpha=0.6)
+for m in metrics_names:
+    plt.figure()
+    values = [np.mean(metrics[model][m]) for model in models]
+    plt.bar(model_names, values)
+    plt.title(f"{m.upper()}@{K}")
+    plt.ylabel(m.upper())
+    plt.xlabel("Model")
+    plt.grid(axis="y")
     plt.show()
 
-plot_bar3(np.mean(metrics["knn"]["prec"]),
-          np.mean(metrics["svd"]["prec"]),
-          np.mean(metrics["svd_bias"]["prec"]),
-          "Precision@K Comparison", "Precision@K")
 
-plot_bar3(np.mean(metrics["knn"]["rec"]),
-          np.mean(metrics["svd"]["rec"]),
-          np.mean(metrics["svd_bias"]["rec"]),
-          "Recall@K Comparison", "Recall@K")
+# ----------------------------------------------------------
+# COMPARACIÓ SVD vs SVD amb BIAS
+# ----------------------------------------------------------
 
-plot_bar3(np.mean(metrics["knn"]["map"]),
-          np.mean(metrics["svd"]["map"]),
-          np.mean(metrics["svd_bias"]["map"]),
-          "MAP@K Comparison", "MAP@K")
+plt.figure()
+svd_vals = [np.mean(metrics["svd"][m]) for m in metrics_names]
+bias_vals = [np.mean(metrics["svd_bias"][m]) for m in metrics_names]
 
-plot_bar3(np.mean(metrics["knn"]["ndcg"]),
-          np.mean(metrics["svd"]["ndcg"]),
-          np.mean(metrics["svd_bias"]["ndcg"]),
-          "NDCG@K Comparison", "NDCG@K")
+x = np.arange(len(metrics_names))
+plt.bar(x - 0.2, svd_vals, width=0.4, label="SVD")
+plt.bar(x + 0.2, bias_vals, width=0.4, label="SVD amb bias")
 
-plot_bar3(rmse_knn, rmse_svd, rmse_bias,
-          "RMSE Comparison", "RMSE")
+plt.xticks(x, [m.upper() for m in metrics_names])
+plt.ylabel("Valor")
+plt.title("SVD vs SVD amb bias")
+plt.legend()
+plt.grid(axis="y")
+plt.show()
 
-print("\nGràfics generats correctament.")
+
+# ----------------------------------------------------------
+# PRECISION–RECALL CURVE
+# ----------------------------------------------------------
+
+plt.figure()
+
+for model, name in zip(models, model_names):
+    plt.plot(
+        metrics[model]["rec"],
+        metrics[model]["prec"],
+        marker="o",
+        linestyle="",
+        alpha=0.4,
+        label=name
+    )
+
+plt.xlabel("Recall")
+plt.ylabel("Precision")
+plt.title("Precision–Recall Curve")
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# ----------------------------------------------------------
+# RMSE COMPARACIÓ
+# ----------------------------------------------------------
+
+plt.figure()
+plt.bar(
+    model_names,
+    [rmse_knn, rmse_svd, rmse_bias]
+)
+plt.title("RMSE per model")
+plt.ylabel("RMSE")
+plt.grid(axis="y")
+plt.show()
+
+
 
 
 
