@@ -1,8 +1,8 @@
 TO DO
 
 Nivell molt IMPORTANT:
-- Corregir que hi hagi un main, un main_mètriques, arxius trains, arxius inferències i tots seguixin el mateix format de cridar funcions
-- Biaixos de SVD (bias) → impacte metriques i precisio. Comparar amb i sense
+- revisar que tots seguixin el mateix format de cridar funcions
+- Comparar amb i sense biais. Impacte metriques i precisio. 
 - Revisar si split train-test el volem fer en una funció com ara o en cross-validation
 - Ficar treshold, en quin moment un item recomanat es considera bo amb un 4 de rating???
 - Provar mètriques en un sol arxiu (precission, recall…)
