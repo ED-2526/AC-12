@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-MAIN SURPRISE SCRIPT — KNN Item-Item i SVD (Funk-SVD)
-Comparació directa amb els models propis.
+MAIN SURPRISE SCRIPT — Flexible LOO / K-Fold Cross-validation
+Models:
+- KNN Item-Item
+- SVD (Funk-SVD)
+Mètriques:
+- Precision@K, Recall@K, MAP@K, NDCG@K, RMSE
 """
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from surprise import Dataset, Reader, KNNBasic, SVD
-from data_cleaner import load_and_clean  
+from surprise.model_selection import KFold
+from data_cleaner import load_and_clean
 
-
-# -----------------------------------------
-#       Funcions de mètriques 
-# -----------------------------------------
-
+# ----------------------------------------------------------
+# Mètriques de ranking
+# ----------------------------------------------------------
 def precision_k(recommended, relevant, k):
     return len(set(recommended[:k]) & set(relevant)) / k
 
@@ -26,7 +28,7 @@ def apk(recommended, relevant, k):
     for i, item in enumerate(recommended[:k]):
         if item in relevant:
             hits += 1
-            score += hits / (i+1)
+            score += hits / (i + 1)
     return score / min(len(relevant), k)
 
 def ndcg_k(recommended, relevant, k):
@@ -34,140 +36,156 @@ def ndcg_k(recommended, relevant, k):
     idcg = sum(1/np.log2(i+2) for i in range(min(len(relevant), k)))
     return dcg / idcg if idcg > 0 else 0.0
 
-
-# -----------------------------------------
-#                 DATA
-# -----------------------------------------
-
+# ----------------------------------------------------------
+# Configuració
+# ----------------------------------------------------------
 PATH = r"C:\Users\laura\Desktop\AC\projecte\archive\ratings_Electronics.csv"
-df = load_and_clean(PATH)
-
-print("Dataset carregat:", df.shape)
-
-test = df.groupby("userID").tail(1)
-train = df.drop(test.index)
-
-test_users  = list(test["userID"])
-test_items  = list(test["itemID"])
-test_ratings = test.set_index("userID")["rating"].to_dict()
-
-train_items_per_user = train.groupby("userID")["itemID"].apply(set).to_dict()
-all_items = set(train["itemID"])
-
-print("Train:", train.shape)
-print("Test:", test.shape)
-
-
-# -----------------------------------------
-#     PREPARAR SURPRISE DATASET
-# -----------------------------------------
-
-reader = Reader(rating_scale=(1, 5))
-data = Dataset.load_from_df(train[['userID', 'itemID', 'rating']], reader)
-trainset = data.build_full_trainset()
-
-
-
-# -----------------------------------------
-#               Entrenar MODELS
-# -----------------------------------------
-
-print("\n=== ENTRENANT Surprise KNN item-item ===")
-knn_algo = KNNBasic(
-    k=20,
-    sim_options={"name": "cosine", "user_based": False}
-)
-knn_algo.fit(trainset)
-
-
-print("\n=== ENTRENANT Surprise SVD ===")
-svd_algo = SVD(
-    n_factors=20,
-    n_epochs=15,
-    biased=True,
-)
-svd_algo.fit(trainset)
-
-
-# -----------------------------------------
-#               TEST + METRIQUES
-# -----------------------------------------
-
 K = 10
+N_FOLDS = 5            # només per cross-validation
+EVAL_MODE = "loo"      # "loo" o "crossval"
 
-rmse_knn = rmse_svd = 0
-prec_knn = []; rec_knn = []; map_knn = []; ndcg_knn = []
-prec_svd = []; rec_svd = []; map_svd = []; ndcg_svd = []
+# ----------------------------------------------------------
+# Carregar dataset
+# ----------------------------------------------------------
+df = load_and_clean(PATH, plot=False)
 
-print("\n=== INICIANT TEST... ===")
+all_items = set(df["itemID"])
+train_items_per_user = df.groupby("userID")["itemID"].apply(set).to_dict()
 
-for u, true_item in zip(test_users, test_items):
+# ----------------------------------------------------------
+# Preparar Surprise dataset
+# ----------------------------------------------------------
+reader = Reader(rating_scale=(1, 5))
+data = Dataset.load_from_df(df[['userID','itemID','rating']], reader)
+trainset_full = data.build_full_trainset()
 
-    true_rating = test_ratings[u]
-    relevant = [true_item]
+# ----------------------------------------------------------
+# Entrenar models sobre tot el trainset
+# ----------------------------------------------------------
+print("\n=== Entrenant KNN ===")
+knn_algo = KNNBasic(k=20, sim_options={"name":"cosine", "user_based":False})
+knn_algo.fit(trainset_full)
 
-    rated_items = train_items_per_user.get(u, set())
-    unseen_items = list(all_items - rated_items)
+print("\n=== Entrenant SVD ===")
+svd_algo = SVD(n_factors=40, n_epochs=15, biased=True)
+svd_algo.fit(trainset_full)
 
-    # --------------------------
-    # KNN
-    # --------------------------
+# ----------------------------------------------------------
+# Inicialitzar llistes de resultats
+# ----------------------------------------------------------
+metrics_knn = {"prec":[], "rec":[],"map":[],"ndcg":[]}
+metrics_svd = {"prec":[], "rec":[],"map":[],"ndcg":[]}
+rmse_knn_total = 0
+rmse_svd_total = 0
+rmse_count = 0
 
-    pred_knn = knn_algo.predict(u, true_item).est
-    rmse_knn += (pred_knn - true_rating)**2
+# ----------------------------------------------------------
+# Funció auxiliar per obtenir els ítems no vistos
+# ----------------------------------------------------------
+def get_unseen_items(user_id, df):
+    rated_items = set(df[df["userID"]==user_id]["itemID"])
+    return list(all_items - rated_items)
 
-    preds_knn = [(iid, knn_algo.predict(u, iid).est) for iid in unseen_items]
-    preds_knn.sort(key=lambda x: x[1], reverse=True)
-    rec_knn_u = [iid for iid, _ in preds_knn[:K]]
+# ----------------------------------------------------------
+# Split Leave-One-Out per usuari
+# ----------------------------------------------------------
+if EVAL_MODE=="loo":
+    test = df.groupby("userID").tail(1)
+    train = df.drop(test.index)
+    test_users = test["userID"].unique()
+    
+    for u in test_users:
+        relevant = list(test[test["userID"]==u]["itemID"])
+        unseen_items = list(all_items - set(train[train["userID"]==u]["itemID"]))
 
-    prec_knn.append(precision_k(rec_knn_u, relevant, K))
-    rec_knn.append(recall_k(rec_knn_u, relevant, K))
-    map_knn.append(apk(rec_knn_u, relevant, K))
-    ndcg_knn.append(ndcg_k(rec_knn_u, relevant, K))
+        # ---------- KNN ----------
+        preds_knn = [(iid, knn_algo.predict(u,iid).est) for iid in unseen_items]
+        preds_knn.sort(key=lambda x:x[1], reverse=True)
+        rec_knn = [iid for iid,_ in preds_knn[:K]]
+        metrics_knn["prec"].append(precision_k(rec_knn,relevant,K))
+        metrics_knn["rec"].append(recall_k(rec_knn,relevant,K))
+        metrics_knn["map"].append(apk(rec_knn,relevant,K))
+        metrics_knn["ndcg"].append(ndcg_k(rec_knn,relevant,K))
 
-    # --------------------------
-    # SVD
-    # --------------------------
+        for iid in relevant:
+            pred = knn_algo.predict(u,iid).est
+            rmse_knn_total += (pred - float(test.loc[(test["userID"]==u)&(test["itemID"]==iid),"rating"]))**2
+            rmse_count += 1
 
-    pred_svd = svd_algo.predict(u, true_item).est
-    rmse_svd += (pred_svd - true_rating)**2
+        # ---------- SVD ----------
+        preds_svd = [(iid, svd_algo.predict(u,iid).est) for iid in unseen_items]
+        preds_svd.sort(key=lambda x:x[1], reverse=True)
+        rec_svd = [iid for iid,_ in preds_svd[:K]]
+        metrics_svd["prec"].append(precision_k(rec_svd,relevant,K))
+        metrics_svd["rec"].append(recall_k(rec_svd,relevant,K))
+        metrics_svd["map"].append(apk(rec_svd,relevant,K))
+        metrics_svd["ndcg"].append(ndcg_k(rec_svd,relevant,K))
 
-    preds_svd = [(iid, svd_algo.predict(u, iid).est) for iid in unseen_items]
-    preds_svd.sort(key=lambda x: x[1], reverse=True)
-    rec_svd_u = [iid for iid, _ in preds_svd[:K]]
+        for iid in relevant:
+            pred = svd_algo.predict(u,iid).est
+            rmse_svd_total += (pred - float(test.loc[(test["userID"]==u)&(test["itemID"]==iid),"rating"]))**2
 
-    prec_svd.append(precision_k(rec_svd_u, relevant, K))
-    rec_svd.append(recall_k(rec_svd_u, relevant, K))
-    map_svd.append(apk(rec_svd_u, relevant, K))
-    ndcg_svd.append(ndcg_k(rec_svd_u, relevant, K))
+# ----------------------------------------------------------
+# Split K-Fold Cross-validation per usuari
+# ----------------------------------------------------------
+elif EVAL_MODE=="crossval":
+    kf = KFold(n_splits=N_FOLDS, random_state=42, shuffle=True)
+    for trainset_cv, testset_cv in kf.split(data):
+        # Crear diccionari de ratings per usuari en fold
+        test_df_cv = pd.DataFrame(testset_cv, columns=["userID","itemID","rating"])
+        train_df_cv = pd.DataFrame(trainset_cv.build_testset(), columns=["userID","itemID","rating"])
 
+        for u, group in test_df_cv.groupby("userID"):
+            relevant = list(group["itemID"])
+            unseen_items = list(all_items - set(train_df_cv[train_df_cv["userID"]==u]["itemID"]))
 
-# Final metrics
-N = len(test_users)
-if N > 0:
-    rmse_knn = np.sqrt(rmse_knn / N) 
-    rmse_svd = np.sqrt(rmse_svd / N) 
+            # ---------- KNN ----------
+            preds_knn = [(iid, knn_algo.predict(u,iid).est) for iid in unseen_items]
+            preds_knn.sort(key=lambda x:x[1], reverse=True)
+            rec_knn = [iid for iid,_ in preds_knn[:K]]
+            metrics_knn["prec"].append(precision_k(rec_knn,relevant,K))
+            metrics_knn["rec"].append(recall_k(rec_knn,relevant,K))
+            metrics_knn["map"].append(apk(rec_knn,relevant,K))
+            metrics_knn["ndcg"].append(ndcg_k(rec_knn,relevant,K))
+
+            for iid in relevant:
+                pred = knn_algo.predict(u,iid).est
+                rmse_knn_total += (pred - float(group[group["itemID"]==iid]["rating"]))**2
+                rmse_count += 1
+
+            # ---------- SVD ----------
+            preds_svd = [(iid, svd_algo.predict(u,iid).est) for iid in unseen_items]
+            preds_svd.sort(key=lambda x:x[1], reverse=True)
+            rec_svd = [iid for iid,_ in preds_svd[:K]]
+            metrics_svd["prec"].append(precision_k(rec_svd,relevant,K))
+            metrics_svd["rec"].append(recall_k(rec_svd,relevant,K))
+            metrics_svd["map"].append(apk(rec_svd,relevant,K))
+            metrics_svd["ndcg"].append(ndcg_k(rec_svd,relevant,K))
+
+            for iid in relevant:
+                pred = svd_algo.predict(u,iid).est
+                rmse_svd_total += (pred - float(group[group["itemID"]==iid]["rating"]))**2
+
 else:
-    rmse_knn = None
-    rmse_svd = None
+    raise ValueError("EVAL_MODE ha de ser 'loo' o 'crossval'.")
 
-print("\n============== RESULTATS SURPRISE ==============")
-print(f"\n--- KNN ---")
-print(f"Precision@{K}: {np.mean(prec_knn):.4f}")
-print(f"Recall@{K}:    {np.mean(rec_knn):.4f}")
-print(f"MAP@{K}:       {np.mean(map_knn):.4f}")
-print(f"NDCG@{K}:      {np.mean(ndcg_knn):.4f}")
-print(f"RSME:         {rmse_svd:.4f}" if rmse_knn is not None else "RSME:         N/A")
+# ----------------------------------------------------------
+# Resultats finals
+# ----------------------------------------------------------
+N = rmse_count if rmse_count>0 else 1
+
+print("\n============== RESULTATS ==============")
+print(f"--- KNN ---")
+print(f"Precision@{K}: {np.mean(metrics_knn['prec']):.4f}")
+print(f"Recall@{K}:    {np.mean(metrics_knn['rec']):.4f}")
+print(f"MAP@{K}:       {np.mean(metrics_knn['map']):.4f}")
+print(f"NDCG@{K}:      {np.mean(metrics_knn['ndcg']):.4f}")
+print(f"RMSE:          {np.sqrt(rmse_knn_total/N):.4f}")
 
 print(f"\n--- SVD ---")
-print(f"Precision@{K}: {np.mean(prec_svd):.4f}")
-print(f"Recall@{K}:    {np.mean(rec_svd):.4f}")
-print(f"MAP@{K}:       {np.mean(map_svd):.4f}")
-print(f"NDCG@{K}:      {np.mean(ndcg_svd):.4f}")
-print(f"RSME:           {rmse_svd:.4f}" if rmse_svd is not None else "RSME:         N/A")
-print("\n================================================")
-
-
-
-
-
+print(f"Precision@{K}: {np.mean(metrics_svd['prec']):.4f}")
+print(f"Recall@{K}:    {np.mean(metrics_svd['rec']):.4f}")
+print(f"MAP@{K}:       {np.mean(metrics_svd['map']):.4f}")
+print(f"NDCG@{K}:      {np.mean(metrics_svd['ndcg']):.4f}")
+print(f"RMSE:          {np.sqrt(rmse_svd_total/N):.4f}")
+print("\n=======================================")
