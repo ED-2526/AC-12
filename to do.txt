@@ -6,7 +6,7 @@ Nivell important:
 - Comparar amb i sense biais. Impacte metriques i precisio.
 - Entendre les mètriques
 - Fer un codi que compari els nostres codis amb llibreria lenskit/surprise que retorni un gràfic i/o que compari el KNN amb FunckSVD.
-- Fer gràfics: data_cleaner abans/despres, comparacio entre svd amb i sense bias i comparacions entre tots per totes les metriques. precission-recall curve
+- Fer gràfics: precission-recall curve
 - Comparar amb dif valors: k, lr, reg, epoch → SVD i k, use_topk → KNN
 - Fer README
 - Preguntar què i com s’ha d’entregar. Informe → 5/1 Presentació i codi ho deixem tot al Github? 
