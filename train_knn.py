@@ -12,48 +12,39 @@ class ItemItemKNN:
     - calcula similitud cosine entre items (o guarda només top_k veïns)
     - prediu la valoració d'un usuari per un item fent weighted avg sobre les valoracions de l'usuari sobre els items veïns.
     """
-
     def __init__(self, k=20, use_topk=True):
         self.k = k
         self.use_topk = use_topk
-        self.item_user_matrix = None   # numpy array (items x users)
-        self.items = None              # arra: item ids in order of rows
-        self.users = None              # array: user ids in order of cols
-        self.item_index = {}           # item_id -> row index
-        self.user_index = {}           # user_id -> col index
-        self.topk_neighbors = None     # list of arrays de similitut d'un item
+        self.item_user_matrix = None 
+        self.items = None           
+        self.users = None       
+        self.item_index = {}       
+        self.user_index = {}       
+        self.topk_neighbors = None  
 
     def build_matrix(self, df):
         """
         crea matriu item x usuari a partir d'un dataframe (df)
         """
-        user_codes, users = pd.factorize(df["userID"]) #crea array d'indexs i array d'usuaris
-        item_codes, items = pd.factorize(df["itemID"]) #crea array d'indexs i array d'items
+        user_codes, users = pd.factorize(df["userID"]) 
+        item_codes, items = pd.factorize(df["itemID"]) 
         n_users = len(users)
         n_items = len(items)
-        mat = np.zeros((n_items, n_users), dtype=np.float32) #creem matriu de 0
-        for u_code, i_code, r in zip(user_codes, item_codes, df["rating"]): #plenem del rating usuari-item
+        mat = np.zeros((n_items, n_users), dtype=np.float32)
+        for u_code, i_code, r in zip(user_codes, item_codes, df["rating"]):
             mat[i_code, u_code] = r
         self.item_user_matrix = mat 
         self.items = items
         self.users = users
-        self.item_index = {item: idx for idx, item in enumerate(items)} #crea un index per cada item
-        self.user_index = {user: idx for idx, user in enumerate(users)} #crea un index per cada usuari
+        self.item_index = {item: idx for idx, item in enumerate(items)} 
+        self.user_index = {user: idx for idx, user in enumerate(users)} 
 
     def fit(self, df):
         """
-        df: DataFrame with columns userID, itemID, rating
         """
-        self.build_matrix(df) #creem matriu
-        """
-        Limitació de seguretat: Si hi ha massa usuaris o items, atura
-        #Creiem que ja es limita el dataset amb fraction del data_cleaner
-        if len(self.items) > 30000 or len(self.users) > 30000:
-            raise ValueError(f"Massa usuaris/items per entrenar KNN. Redueix dataset amb filtres més estrictes.")
-        """
-        #compara totes les files entre elles, i calcula per parelles com de similars són dos ítems segons les valoracions dels usuaris
+        self.build_matrix(df) 
         sim = cosine_similarity(self.item_user_matrix) #sim = matriu item x item amb les similituts cosinus (0-1) entre items (diagonal=1)
-        if self.use_topk: #For each item, keep top-k neighbors (excluding itself)
+        if self.use_topk: 
             n_items = sim.shape[0] #numero d'items
             self.topk_neighbors = [None] * n_items #[None, None, None, None] tants com items 
             for i in range(n_items):
@@ -98,4 +89,5 @@ if __name__ == "__main__":
     model = train_itemknn(df, k=20, model_path="../models/knn_item_model.pkl", use_topk=True)
     print("Saved model to ../models/knn_item_model.pkl")
 """
+
 
