@@ -27,8 +27,6 @@ L’anàlisi es basa en models de regressió i filtratge col·laboratiu per pred
   - main_leaveoneout.py — Avaluació amb Leave-One-Out, càlcul de mètriques i gràfics de comparació.
   - main_crossval.py — Avaluació amb K-Fold Cross-Validation per usuari.
   - main_surprise.py — Validació externa utilitzant la biblioteca Surprise (KNNBasic i SVD).
-  - lenskit.py
-  - ROCcurve.py
   - cleaned_data.csv — Dataset netejat generat (no inclòs al repo per mida, generar amb data_cleaner.py).
 
 
