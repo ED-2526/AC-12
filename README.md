@@ -3,6 +3,7 @@
 
 
 *Descripció del Projecte*
+
 L’objectiu d’aquest treball és predir les recomanacions de productes d'Amazon mitjançant tècniques d’aprenentatge automàtic. Utilitzant un conjunt de dades (dataaset) que inclou informació sobre els usuaris, els productes, les valoracions i el moment temporal de les interaccions (timestamp). Pretenem identificar patrons de comportament de compra i preferències dels usuaris dins la plataforma.
 
 L’anàlisi es basa en models de regressió i filtratge col·laboratiu per predir les valoracions dels productes, així com en tècniques de clustering per identificar grups d’usuaris amb característiques i interessos similars, amb l’objectiu de millorar la precisió i la personalització de les recomanacions.
@@ -16,20 +17,40 @@ L’anàlisi es basa en models de regressió i filtratge col·laboratiu per pred
 
 
 *Contingut del Repositori*
-  - data_cleaner.py
-  - train_knn.py
-  - train_svd.py
-  - train_svd_bias.py
-  - infer_knn.py
-  - infer_svd.py
-  - main_surprise.py
-  - main_leaveoneout.py
-  - main_crossval.py
+  - data_cleaner.py — Script per carregar, netejar i filtrar el dataset.
+  - train_knn.py — Entrenament del model Item-Item KNN amb similitud cosinus.
+  - train_svd.py — Entrenament de FunkSVD bàsic (sense bias) mitjançant SGD.
+  - train_svd_bias.py — Entrenament de FunkSVD amb bias (global, usuari i ítem).
+  - infer_knn.py — Predicció de ratings i generació de recomanacions top-N amb el model KNN.
+  - infer_svd.py — Predicció i recomanacions amb models SVD (detecta automàticament si inclou bias).
+  - main_leaveoneout.py — Avaluació amb Leave-One-Out, càlcul de mètriques i gràfics de comparació.
+  - main_crossval.py — Avaluació amb K-Fold Cross-Validation per usuari.
+  - main_surprise.py — Validació externa utilitzant la biblioteca Surprise (KNNBasic i SVD).
   - lenskit.py
   - ROCcurve.py
+  - cleaned_data.csv — Dataset netejat generat (no inclòs al repo per mida, generar amb data_cleaner.py).
 
 
 *Descripció del Dataset*
+Font: Dataset públic d'Amazon Reviews (categoria Electronics), provinent de Kaggle (https://www.kaggle.com/datasets/saurav9786/amazon-product-reviews).
 Nom: ratings_Electronics(1).csv
-Nombre de registres: 1.000.000
-Nombre de columnes: 4
+Nombre de registres: Aproximadament 7.824.482 valoracions.
+Columnes (4):
+- userID: Identificador de l'usuari (string).
+- itemID: Identificador del producte (ASIN, string).
+- rating: Valoració (1 a 5, float).
+- timestamp: Data de la valoració (Unix timestamp).
+
+*Requisits i Instal·lació*
+Python 3.8+
+Llibreries necessàries:
+- pandas
+- numpy
+- pickle
+- os
+- scikit-learn
+- matplotlib
+- surprise  
+
+*Autors*
+Clàudia Blasco, Laura Buide i Lucía Rodríguez.
