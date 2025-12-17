@@ -10,6 +10,7 @@ L’anàlisi es basa en models de regressió i filtratge col·laboratiu per pred
 
 
 *Objectius del Projecte*
+
 1. Predir les valoracions dels productes d’Amazon mitjançant models de recomanació col·laborativa, utilitzant tècniques d’aprenentatge automàtic com KNN Item-Item i FunkSVD (amb i sense bias).
 2. Analitzar si els patrons de comportament dels usuaris i les característiques dels productes generen estructures o agrupacions implícites, observant si els factors latents apresos pels models permeten identificar similituds entre usuaris i ítems, i si existeix una segmentació clara basada en les preferències de compra.
 3. Desenvolupar perfils predictius d’usuaris i productes a partir de les valoracions històriques, els factors latents i les relacions de similitud, amb l’objectiu de caracteritzar els interessos dels usuaris i la popularitat o especialització dels productes.
