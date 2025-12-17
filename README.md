@@ -17,6 +17,7 @@ L’anàlisi es basa en models de regressió i filtratge col·laboratiu per pred
 
 
 *Contingut del Repositori*
+
   - data_cleaner.py — Script per carregar, netejar i filtrar el dataset.
   - train_knn.py — Entrenament del model Item-Item KNN amb similitud cosinus.
   - train_svd.py — Entrenament de FunkSVD bàsic (sense bias) mitjançant SGD.
@@ -32,6 +33,7 @@ L’anàlisi es basa en models de regressió i filtratge col·laboratiu per pred
 
 
 *Descripció del Dataset*
+
 Font: Dataset públic d'Amazon Reviews (categoria Electronics), provinent de Kaggle (https://www.kaggle.com/datasets/saurav9786/amazon-product-reviews).
 Nom: ratings_Electronics(1).csv
 Nombre de registres: Aproximadament 7.824.482 valoracions.
@@ -42,6 +44,7 @@ Columnes (4):
 - timestamp: Data de la valoració (Unix timestamp).
 
 *Requisits i Instal·lació*
+
 Python 3.8+
 Llibreries necessàries:
 - pandas
@@ -53,4 +56,5 @@ Llibreries necessàries:
 - surprise  
 
 *Autors*
+
 Clàudia Blasco, Laura Buide i Lucía Rodríguez.
